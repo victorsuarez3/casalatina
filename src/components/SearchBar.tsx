@@ -1,0 +1,99 @@
+/**
+ * SearchBar component for searching events
+ */
+
+import React from 'react';
+import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../hooks/useTheme';
+
+interface SearchBarProps {
+  placeholder?: string;
+  value?: string;
+  onChangeText?: (text: string) => void;
+  onFilterPress?: () => void;
+}
+
+export const SearchBar: React.FC<SearchBarProps> = ({
+  placeholder = 'Search...',
+  value,
+  onChangeText,
+  onFilterPress,
+}) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <Ionicons
+          name="search"
+          size={20}
+          color={theme.colors.textSecondary}
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder={placeholder}
+          placeholderTextColor={theme.colors.textTertiary}
+          value={value}
+          onChangeText={onChangeText}
+        />
+      </View>
+      {onFilterPress && (
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={onFilterPress}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name="filter"
+            size={20}
+            color={theme.colors.text}
+          />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
+const createStyles = (theme: any) => StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: theme.spacing.md,
+    marginBottom: theme.spacing.md + 4, // More spacing
+    gap: theme.spacing.sm + 2,
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.md,
+    paddingHorizontal: theme.spacing.md + 2,
+    paddingVertical: theme.spacing.sm + 4, // More padding
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  searchIcon: {
+    marginRight: theme.spacing.sm,
+  },
+  input: {
+    flex: 1,
+    ...theme.typography.body,
+    color: theme.colors.text,
+    padding: 0,
+  },
+  filterButton: {
+    width: 48,
+    height: 48,
+    borderRadius: theme.borderRadius.md,
+    backgroundColor: theme.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+});
+

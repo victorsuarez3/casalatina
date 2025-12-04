@@ -1,0 +1,116 @@
+/**
+ * RSVP Filter Chips Component - Premium Design
+ * Filters events by RSVP status with micro-interactions
+ */
+
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { useTheme } from '../hooks/useTheme';
+import { t } from '../i18n';
+
+export type RsvpFilter = 'all' | 'going' | 'went';
+
+interface RsvpFilterChipsProps {
+  selectedFilter: RsvpFilter;
+  onFilterChange: (filter: RsvpFilter) => void;
+}
+
+const filters: { id: RsvpFilter; labelKey: string }[] = [
+  { id: 'all', labelKey: 'filter_all' },
+  { id: 'going', labelKey: 'filter_going' },
+  { id: 'went', labelKey: 'filter_went' },
+];
+
+export const RsvpFilterChips: React.FC<RsvpFilterChipsProps> = ({
+  selectedFilter,
+  onFilterChange,
+}) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <View style={styles.container}>
+      {filters.map((filter) => {
+        const isSelected = filter.id === selectedFilter;
+        const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+        const handlePressIn = () => {
+          Animated.spring(scaleAnim, {
+            toValue: 0.95,
+            useNativeDriver: true,
+            damping: 15,
+          }).start();
+        };
+
+        const handlePressOut = () => {
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+            damping: 15,
+          }).start();
+        };
+
+        return (
+          <Animated.View
+            key={filter.id}
+            style={[{ transform: [{ scale: scaleAnim }] }]}
+          >
+            <TouchableOpacity
+              style={[
+                styles.chip,
+                isSelected && styles.chipSelected,
+              ]}
+              onPress={() => onFilterChange(filter.id)}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+              activeOpacity={1}
+            >
+              <Text
+                style={[
+                  styles.chipText,
+                  isSelected && styles.chipTextSelected,
+                ]}
+              >
+                {t(filter.labelKey)}
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        );
+      })}
+    </View>
+  );
+};
+
+const createStyles = (theme: any) => StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md + 4, // More breathing room
+    paddingBottom: theme.spacing.lg, // Larger bottom margin
+    gap: theme.spacing.sm + 2,
+  },
+  chip: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm + 2,
+    borderRadius: theme.borderRadius.round,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  chipSelected: {
+    backgroundColor: theme.colors.primary, // Original Champagne Gold
+    borderColor: theme.colors.primary,
+  },
+  chipText: {
+    ...theme.typography.label,
+    color: theme.colors.textSecondary,
+    fontSize: 14,
+    opacity: 0.75,
+  },
+  chipTextSelected: {
+    ...theme.typography.label,
+    color: theme.colors.background,
+    fontWeight: '500', // Not heavy
+    opacity: 1,
+  },
+});
