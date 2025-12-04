@@ -28,14 +28,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       <View style={styles.searchContainer}>
         <Ionicons
           name="search"
-          size={20}
+          size={18}
           color={theme.colors.textSecondary}
           style={styles.searchIcon}
         />
         <TextInput
           style={styles.input}
           placeholder={placeholder}
-          placeholderTextColor={theme.colors.textTertiary}
+          placeholderTextColor="rgba(255, 255, 255, 0.35)"
           value={value}
           onChangeText={onChangeText}
         />
@@ -74,7 +74,11 @@ const createStyles = (theme: any) => StyleSheet.create({
     paddingHorizontal: theme.spacing.md + 2,
     paddingVertical: theme.spacing.sm + 4, // More padding
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: 'rgba(243, 232, 209, 0.15)',
+    shadowColor: 'rgba(243, 232, 209, 0.05)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
   },
   searchIcon: {
     marginRight: theme.spacing.sm,

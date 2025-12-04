@@ -1,6 +1,7 @@
 /**
  * Profile Details Section - Casa Latina Premium
- * Form for user profile details
+ * Social/visible fields that other members can see
+ * These are NOT used for membership validation
  */
 
 import React, { useState } from 'react';
@@ -9,22 +10,25 @@ import {
   Text,
   TextInput,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 
-type RelationshipOption = 'single' | 'married' | 'prefer-not-to-say';
-
 interface ProfileFormData {
+  // Basic visible info (converges with application)
   position: string;
   company: string;
-  city: string;
-  university: string;
-  relationship: RelationshipOption;
-  favoriteJob: string;
-  favoriteRestaurant: string;
-  favoriteCoffeePlace: string;
+  // Social/visible fields (NOT for validation)
+  bio: string;
+  instagramHandle: string;
+  hobbies: string;
   favoriteMovie: string;
+  favoriteRestaurant: string;
+  favoriteCoffeeSpot: string;
 }
 
 export const ProfileDetailsSection: React.FC = () => {
@@ -34,13 +38,12 @@ export const ProfileDetailsSection: React.FC = () => {
   const [formData, setFormData] = useState<ProfileFormData>({
     position: '',
     company: '',
-    city: 'Miami',
-    university: '',
-    relationship: 'single',
-    favoriteJob: '',
-    favoriteRestaurant: '',
-    favoriteCoffeePlace: '',
+    bio: '',
+    instagramHandle: '',
+    hobbies: '',
     favoriteMovie: '',
+    favoriteRestaurant: '',
+    favoriteCoffeeSpot: '',
   });
 
   const handleSave = () => {
@@ -48,24 +51,32 @@ export const ProfileDetailsSection: React.FC = () => {
     // TODO: Wire to backend
   };
 
-  const updateField = (field: keyof ProfileFormData, value: string | RelationshipOption) => {
+  const updateField = (field: keyof ProfileFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const relationshipOptions: { value: RelationshipOption; label: string }[] = [
-    { value: 'single', label: 'Single' },
-    { value: 'married', label: 'Married' },
-    { value: 'prefer-not-to-say', label: 'Prefer not to say' },
-  ];
+  const handleInstagramPress = () => {
+    if (formData.instagramHandle) {
+      const handle = formData.instagramHandle.replace('@', '');
+      const url = `https://instagram.com/${handle}`;
+      Linking.openURL(url).catch((err) =>
+        console.error('Failed to open Instagram:', err)
+      );
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      {/* About you section */}
-      <Text style={styles.sectionTitle}>About you</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Basic Information Section */}
+      <Text style={styles.sectionTitle}>Basic Information</Text>
 
       {/* Position */}
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>Position</Text>
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Position</Text>
         <TextInput
           style={styles.textInput}
           placeholder="e.g. Product Manager"
@@ -76,8 +87,8 @@ export const ProfileDetailsSection: React.FC = () => {
       </View>
 
       {/* Company */}
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>Company</Text>
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Company</Text>
         <TextInput
           style={styles.textInput}
           placeholder="e.g. Tech Corp"
@@ -87,101 +98,84 @@ export const ProfileDetailsSection: React.FC = () => {
         />
       </View>
 
-      {/* City */}
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>City</Text>
+      {/* Social Section */}
+      <Text style={[styles.sectionTitle, styles.sectionTitleMargin]}>
+        Social Profile
+      </Text>
+
+      {/* Bio */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Short Bio</Text>
         <TextInput
-          style={styles.textInput}
-          placeholder="Miami"
+          style={[styles.textInput, styles.textArea]}
+          placeholder="Tell others about yourself..."
           placeholderTextColor="rgba(255,255,255,0.35)"
-          value={formData.city}
-          onChangeText={(value) => updateField('city', value)}
+          value={formData.bio}
+          onChangeText={(value) => updateField('bio', value)}
+          multiline
+          numberOfLines={4}
+          textAlignVertical="top"
         />
       </View>
 
-      {/* University (optional) */}
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>University (optional)</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="e.g. University of Miami"
-          placeholderTextColor="rgba(255,255,255,0.35)"
-          value={formData.university}
-          onChangeText={(value) => updateField('university', value)}
-        />
-      </View>
-
-      {/* Relationship */}
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>Relationship</Text>
-        <View style={styles.pillsContainer}>
-          {relationshipOptions.map((option) => {
-            const isActive = formData.relationship === option.value;
-            return (
-              <TouchableOpacity
-                key={option.value}
-                style={[
-                  styles.pill,
-                  isActive && styles.pillActive,
-                ]}
-                onPress={() => updateField('relationship', option.value)}
-              >
-                <Text
-                  style={[
-                    styles.pillText,
-                    isActive && styles.pillTextActive,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+      {/* Instagram Handle */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Instagram Handle</Text>
+        <View style={styles.inputWrapper}>
+          <Text style={styles.instagramPrefix}>@</Text>
+          <TextInput
+            style={styles.textInputInline}
+            placeholder="username"
+            placeholderTextColor="rgba(255,255,255,0.35)"
+            value={formData.instagramHandle.replace('@', '')}
+            onChangeText={(value) => updateField('instagramHandle', value)}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {formData.instagramHandle && (
+            <TouchableOpacity
+              style={styles.instagramButton}
+              onPress={handleInstagramPress}
+            >
+              <Ionicons name="open-outline" size={18} color={theme.colors.primary} />
+            </TouchableOpacity>
+          )}
         </View>
+        {formData.instagramHandle && (
+          <Text style={styles.helperText}>
+            Tap the icon to open Instagram profile
+          </Text>
+        )}
       </View>
 
-      {/* Favorites section */}
-      <Text style={[styles.sectionTitle, styles.favoritesTitle]}>Favorites</Text>
+      {/* Interests Section */}
+      <Text style={[styles.sectionTitle, styles.sectionTitleMargin]}>
+        Interests
+      </Text>
 
-      {/* Favorite job */}
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>Favorite job</Text>
+      {/* Hobbies */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Hobbies / Interests</Text>
         <TextInput
           style={styles.textInput}
-          placeholder="e.g. Designer"
+          placeholder="e.g. Travel, Fitness, Wine, Tech"
           placeholderTextColor="rgba(255,255,255,0.35)"
-          value={formData.favoriteJob}
-          onChangeText={(value) => updateField('favoriteJob', value)}
+          value={formData.hobbies}
+          onChangeText={(value) => updateField('hobbies', value)}
         />
+        <Text style={styles.helperText}>
+          Separate multiple interests with commas
+        </Text>
       </View>
 
-      {/* Favorite restaurant */}
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>Favorite restaurant</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="e.g. Zuma"
-          placeholderTextColor="rgba(255,255,255,0.35)"
-          value={formData.favoriteRestaurant}
-          onChangeText={(value) => updateField('favoriteRestaurant', value)}
-        />
-      </View>
+      {/* Favorites Section */}
+      <Text style={[styles.sectionTitle, styles.sectionTitleMargin]}>
+        Favorites
+      </Text>
 
-      {/* Favorite coffee place */}
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>Favorite coffee place</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="e.g. Panther Coffee"
-          placeholderTextColor="rgba(255,255,255,0.35)"
-          value={formData.favoriteCoffeePlace}
-          onChangeText={(value) => updateField('favoriteCoffeePlace', value)}
-        />
-      </View>
-
-      {/* Favorite movie */}
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>Favorite movie</Text>
+      {/* Favorite Movie */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Favorite Movie</Text>
         <TextInput
           style={styles.textInput}
           placeholder="e.g. The Godfather"
@@ -191,21 +185,55 @@ export const ProfileDetailsSection: React.FC = () => {
         />
       </View>
 
-      {/* Save button */}
+      {/* Favorite Restaurant */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Favorite Restaurant</Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="e.g. Zuma"
+          placeholderTextColor="rgba(255,255,255,0.35)"
+          value={formData.favoriteRestaurant}
+          onChangeText={(value) => updateField('favoriteRestaurant', value)}
+        />
+      </View>
+
+      {/* Favorite Coffee Spot */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Favorite Coffee Spot</Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="e.g. Panther Coffee"
+          placeholderTextColor="rgba(255,255,255,0.35)"
+          value={formData.favoriteCoffeeSpot}
+          onChangeText={(value) => updateField('favoriteCoffeeSpot', value)}
+        />
+      </View>
+
+      {/* Save Button */}
       <TouchableOpacity
         style={styles.saveButton}
         onPress={handleSave}
         activeOpacity={0.85}
       >
-        <Text style={styles.saveButtonText}>Save changes</Text>
+        <LinearGradient
+          colors={[theme.colors.primary, theme.colors.primaryDark]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.saveButtonGradient}
+        >
+          <Text style={styles.saveButtonText}>Save changes</Text>
+        </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
+      flex: 1,
+    },
+    content: {
       paddingHorizontal: 24,
       paddingBottom: 40,
     },
@@ -214,68 +242,82 @@ const createStyles = (theme: any) =>
       color: theme.colors.text,
       marginTop: theme.spacing.xl,
       marginBottom: theme.spacing.lg + 4,
+      fontSize: 20,
     },
-    favoritesTitle: {
-      marginTop: 32, // Extra spacing before Favorites section
+    sectionTitleMargin: {
+      marginTop: 32,
     },
-    fieldContainer: {
+    inputContainer: {
       marginBottom: theme.spacing.lg + 4,
     },
-    fieldLabel: {
-      ...theme.typography.labelSmall,
+    label: {
+      ...theme.typography.label,
       color: 'rgba(255,255,255,0.7)',
       marginBottom: theme.spacing.xs + 2,
+      fontSize: 13,
     },
     textInput: {
       backgroundColor: theme.colors.surface,
       borderRadius: theme.borderRadius.md,
       borderWidth: 1,
-      borderColor: theme.colors.primary + '40', // Subtle gold tint
+      borderColor: theme.colors.primary + '40',
       paddingVertical: theme.spacing.md + 2,
       paddingHorizontal: theme.spacing.md + 4,
       ...theme.typography.body,
       color: theme.colors.text,
       fontSize: 15,
     },
-    pillsContainer: {
+    textArea: {
+      minHeight: 100,
+      paddingTop: theme.spacing.md + 2,
+    },
+    inputWrapper: {
       flexDirection: 'row',
-      gap: theme.spacing.sm + 2,
-      flexWrap: 'wrap',
-    },
-    pill: {
-      paddingVertical: theme.spacing.sm + 2,
-      paddingHorizontal: theme.spacing.md + 4,
-      borderRadius: theme.borderRadius.round,
+      alignItems: 'center',
       backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.md,
       borderWidth: 1,
-      borderColor: theme.colors.primary + '60', // Gold border
+      borderColor: theme.colors.primary + '40',
+      paddingHorizontal: theme.spacing.md + 4,
     },
-    pillActive: {
-      backgroundColor: theme.colors.primary, // Gold background
-      borderColor: theme.colors.primary,
-    },
-    pillText: {
-      ...theme.typography.labelSmall,
+    instagramPrefix: {
+      ...theme.typography.body,
       color: theme.colors.textSecondary,
-      fontSize: 13,
+      fontSize: 15,
+      marginRight: 4,
     },
-    pillTextActive: {
-      color: theme.colors.background, // Dark text on gold
-      fontWeight: '600',
+    textInputInline: {
+      flex: 1,
+      ...theme.typography.body,
+      color: theme.colors.text,
+      fontSize: 15,
+      paddingVertical: theme.spacing.md + 2,
+    },
+    instagramButton: {
+      padding: theme.spacing.xs,
+      marginLeft: theme.spacing.xs,
+    },
+    helperText: {
+      ...theme.typography.caption,
+      color: theme.colors.textTertiary,
+      marginTop: theme.spacing.xs,
+      fontSize: 11,
     },
     saveButton: {
-      backgroundColor: theme.colors.primary, // Gold background
       borderRadius: theme.borderRadius.md,
+      overflow: 'hidden',
+      marginTop: theme.spacing.xl + 8,
+      marginBottom: theme.spacing.lg,
+      ...theme.shadows.md,
+    },
+    saveButtonGradient: {
       paddingVertical: theme.spacing.md + 4,
-      paddingHorizontal: theme.spacing.lg + 4,
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop: theme.spacing.xl + 8,
-      ...theme.shadows.sm,
     },
     saveButtonText: {
       ...theme.typography.button,
-      color: theme.colors.background, // Dark text
+      color: theme.colors.background,
+      fontSize: 16,
     },
   });
-

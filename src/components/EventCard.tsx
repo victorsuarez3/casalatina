@@ -150,15 +150,6 @@ export const EventCard: React.FC<EventCardProps> = ({
             <Text style={styles.categoryPillText}>{categoryLabel}</Text>
           </View>
           
-          {/* Arrow Button */}
-          <TouchableOpacity
-            style={styles.arrowButton}
-            onPress={onPress}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="arrow-forward" size={16} color={theme.colors.background} />
-          </TouchableOpacity>
-          
           {/* Title - Inside vignette zone */}
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={2}>{title}</Text>
@@ -235,7 +226,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 const createStyles = (theme: any) => StyleSheet.create({
   container: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.lg, // 22px premium corners
+    borderRadius: 24, // Apple-level premium corners
     marginHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.cardGap, // 20px gap
     overflow: 'hidden',
@@ -263,9 +254,9 @@ const createStyles = (theme: any) => StyleSheet.create({
     left: theme.spacing.lg,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderWidth: 1,
-    borderColor: theme.colors.warmGold, // Golden ring outline
-    paddingHorizontal: theme.spacing.md + 2,
-    paddingVertical: theme.spacing.xs + 2,
+    borderColor: 'rgba(243, 232, 209, 0.40)',
+    paddingHorizontal: theme.spacing.md + 4,
+    paddingVertical: theme.spacing.xs + 4,
     borderRadius: theme.borderRadius.round,
     overflow: 'hidden',
   },
@@ -278,34 +269,25 @@ const createStyles = (theme: any) => StyleSheet.create({
   categoryPillText: {
     ...theme.typography.labelSmall,
     color: theme.colors.primary,
-    fontSize: 10,
-    fontWeight: '500',
+    fontSize: 11,
+    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
-  },
-  arrowButton: {
-    position: 'absolute',
-    bottom: theme.spacing.lg,
-    right: theme.spacing.lg,
-    width: 36,
-    height: 36,
-    borderRadius: theme.borderRadius.round,
-    backgroundColor: theme.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...theme.shadows.sm,
+    letterSpacing: 1.5,
   },
   titleContainer: {
     position: 'absolute',
     bottom: theme.spacing.lg + 4,
     left: theme.spacing.lg,
-    right: 50,
+    right: theme.spacing.lg,
   },
   title: {
     ...theme.typography.subsectionTitle,
     color: theme.colors.text,
     fontSize: 22,
     lineHeight: 30,
+    textShadowColor: 'rgba(0, 0, 0, 0.65)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   detailsContainer: {
     padding: theme.spacing.lg + 4, // Premium padding

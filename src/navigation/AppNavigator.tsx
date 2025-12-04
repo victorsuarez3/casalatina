@@ -14,6 +14,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { EventDetailsScreen } from '../screens/EventDetailsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { InviteScreen } from '../screens/InviteScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -31,6 +32,7 @@ const ProfileStack = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProfileMain" component={ProfileScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
     </Stack.Navigator>
   );

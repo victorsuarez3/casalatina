@@ -43,14 +43,14 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
           <Text style={styles.subtitle}>{t('home_subtitle')}</Text>
         </View>
 
-        {/* Notifications */}
-        <TouchableOpacity
+        {/* Notifications - Hidden for Phase 1 */}
+        {/* <TouchableOpacity
           style={styles.notificationButton}
           onPress={onNotificationPress}
           activeOpacity={0.7}
         >
           <Ionicons name="notifications-outline" size={22} color={theme.colors.text} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Member Badge - Premium */}
@@ -97,12 +97,14 @@ const createStyles = (theme: any, topInset: number) => StyleSheet.create({
   },
   greetingContainer: {
     flex: 1,
-    marginRight: theme.spacing.lg,
+    // marginRight removed since notification button is hidden
   },
   greeting: {
     ...theme.typography.heroTitle,
-    color: theme.colors.text,
-    fontSize: 36,
+    color: '#FFFFFF',
+    fontSize: 38,
+    lineHeight: 46,
+    letterSpacing: -0.5,
     marginBottom: theme.spacing.xs + 4, // More space
   },
   subtitle: {

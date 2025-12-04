@@ -106,7 +106,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         
         <TouchableOpacity
           style={styles.settingsButton}
-          onPress={() => console.log('Settings pressed')}
+          onPress={() => navigation.navigate('Settings')}
         >
           <Ionicons name="settings-outline" size={22} color={theme.colors.textSecondary} />
         </TouchableOpacity>

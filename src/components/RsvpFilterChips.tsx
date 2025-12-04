@@ -36,9 +36,10 @@ export const RsvpFilterChips: React.FC<RsvpFilterChipsProps> = ({
 
         const handlePressIn = () => {
           Animated.spring(scaleAnim, {
-            toValue: 0.95,
+            toValue: isSelected ? 0.98 : 1.02,
             useNativeDriver: true,
             damping: 15,
+            stiffness: 200,
           }).start();
         };
 
@@ -47,6 +48,7 @@ export const RsvpFilterChips: React.FC<RsvpFilterChipsProps> = ({
             toValue: 1,
             useNativeDriver: true,
             damping: 15,
+            stiffness: 200,
           }).start();
         };
 
@@ -95,11 +97,17 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderRadius: theme.borderRadius.round,
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: 'rgba(255, 255, 255, 0.20)',
   },
   chipSelected: {
-    backgroundColor: theme.colors.primary, // Original Champagne Gold
-    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary,
+    borderWidth: 1,
+    borderColor: 'rgba(243, 232, 209, 0.20)',
+    shadowColor: 'rgba(243, 232, 209, 0.4)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
   },
   chipText: {
     ...theme.typography.label,

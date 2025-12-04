@@ -1,16 +1,7 @@
 /**
  * Firebase Configuration
  * 
- * IMPORTANT: Replace the placeholder values below with your actual Firebase project credentials.
- * 
- * To get your Firebase config:
- * 1. Go to https://console.firebase.google.com/
- * 2. Create a new project or select an existing one
- * 3. Go to Project Settings > General
- * 4. Scroll down to "Your apps" section
- * 5. Click on the Web app icon (</>) to add a web app
- * 6. Copy the firebaseConfig object values
- * 7. Replace the TODO_REPLACE values below
+ * Uses environment variables from .env file (via Expo Constants)
  * 
  * Required Firebase services:
  * - Authentication (Email/Password)
@@ -20,15 +11,26 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import Constants from 'expo-constants';
+
+// Get Firebase config from Expo Constants (injected from .env via app.config.ts)
+const extra = Constants.expoConfig?.extra ?? Constants.manifest?.extra ?? {};
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBPyqFGEdXR9AlBnEP7hxTxg30l3UvpieY",
-  authDomain: "gotham-6fc37.firebaseapp.com",
-  projectId: "gotham-6fc37",
-  storageBucket: "gotham-6fc37.firebasestorage.app",
-  messagingSenderId: "1013997283624",
-  appId: "1:1013997283624:web:b30b2e7c806cc00f74481d",
+  apiKey: extra.firebaseApiKey,
+  authDomain: extra.firebaseAuthDomain,
+  projectId: extra.firebaseProjectId,
+  storageBucket: extra.firebaseStorageBucket,
+  messagingSenderId: extra.firebaseMessagingSenderId,
+  appId: extra.firebaseAppId,
 };
+
+// Validate that all required config values are present
+if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
+  throw new Error(
+    'Firebase configuration is missing. Please check your .env file and ensure all EXPO_PUBLIC_FIREBASE_* variables are set.'
+  );
+}
 
 // Initialize Firebase (only if not already initialized)
 let app: FirebaseApp;

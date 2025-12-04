@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import {
   CormorantGaramond_300Light,
   CormorantGaramond_400Regular,
@@ -17,8 +18,34 @@ import {
   Inter_600SemiBold,
 } from '@expo-google-fonts/inter';
 import { ThemeProvider } from './src/hooks/useTheme';
-import { AuthProvider } from './src/hooks/useAuth';
+import { AuthProvider, useAuth } from './src/hooks/useAuth';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { AuthNavigator } from './src/navigation/AuthNavigator';
+
+function AppContent() {
+  const { user, loading } = useAuth();
+  const [showAuth, setShowAuth] = React.useState(!user);
+
+  React.useEffect(() => {
+    if (!loading) {
+      setShowAuth(!user);
+    }
+  }, [user, loading]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#D5C4A1" />
+      </View>
+    );
+  }
+
+  if (showAuth) {
+    return <AuthNavigator onAuthSuccess={() => setShowAuth(false)} />;
+  }
+
+  return <AppNavigator />;
+}
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -44,7 +71,7 @@ export default function App() {
         <ThemeProvider>
           <AuthProvider>
             <NavigationContainer>
-              <AppNavigator />
+              <AppContent />
               <StatusBar style="light" />
             </NavigationContainer>
           </AuthProvider>
@@ -53,3 +80,12 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

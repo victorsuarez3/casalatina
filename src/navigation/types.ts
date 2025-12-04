@@ -9,6 +9,7 @@ export type RootStackParamList = {
   HomeMain: undefined;
   EventDetails: { eventId: string };
   ProfileMain: undefined;
+  Settings: undefined;
 };
 
 export type TabParamList = {
@@ -20,4 +21,5 @@ export type TabParamList = {
 export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'HomeMain'>;
 export type EventDetailsScreenProps = NativeStackScreenProps<RootStackParamList, 'EventDetails'>;
 export type ProfileScreenProps = NativeStackScreenProps<RootStackParamList, 'ProfileMain'>;
+export type SettingsScreenProps = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
