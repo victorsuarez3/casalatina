@@ -94,9 +94,9 @@ export const useEventsWithRsvp = (city: string) => {
                 const mockEvent = mockEvents.find(m => m.id === event.id);
                 return {
                   ...event,
-                  rsvpStatus: mockEvent?.rsvpStatus === 'going' ? 'going' : 
+                  rsvpStatus: (mockEvent?.rsvpStatus === 'going' ? 'going' : 
                              mockEvent?.rsvpStatus === 'went' ? 'went' : 
-                             mockEvent?.rsvpStatus === 'waitlist' ? 'waitlist' : null,
+                             mockEvent?.rsvpStatus === 'waitlist' ? 'waitlist' : null) as 'going' | 'went' | 'waitlist' | null,
                 };
               }
             })
@@ -109,9 +109,9 @@ export const useEventsWithRsvp = (city: string) => {
             const mockEvent = mockEvents.find(m => m.id === event.id);
             return {
               ...event,
-              rsvpStatus: mockEvent?.rsvpStatus === 'going' ? 'going' : 
+              rsvpStatus: (mockEvent?.rsvpStatus === 'going' ? 'going' : 
                          mockEvent?.rsvpStatus === 'went' ? 'went' : 
-                         mockEvent?.rsvpStatus === 'waitlist' ? 'waitlist' : null,
+                         mockEvent?.rsvpStatus === 'waitlist' ? 'waitlist' : null) as 'going' | 'went' | 'waitlist' | null,
             };
           });
           console.log('Events without user:', eventsWithMockRsvp.length);
