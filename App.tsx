@@ -5,6 +5,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import * as SplashScreenNative from 'expo-splash-screen';
+
+// Keep splash screen visible until fonts are loaded
+SplashScreenNative.preventAutoHideAsync();
 import {
   CormorantGaramond_300Light,
   CormorantGaramond_400Regular,
@@ -16,21 +20,29 @@ import {
   Inter_400Regular,
   Inter_500Medium,
   Inter_600SemiBold,
+  Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { ThemeProvider } from './src/hooks/useTheme';
 import { AuthProvider, useAuth } from './src/hooks/useAuth';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { AuthNavigator } from './src/navigation/AuthNavigator';
+import { SplashScreen } from './src/screens/SplashScreen';
 
 function AppContent() {
   const { user, loading } = useAuth();
   const [showAuth, setShowAuth] = React.useState(!user);
+  const [showSplash, setShowSplash] = React.useState(true);
 
   React.useEffect(() => {
     if (!loading) {
       setShowAuth(!user);
     }
   }, [user, loading]);
+
+  // Show splash screen first
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
 
   if (loading) {
     return (
@@ -59,7 +71,15 @@ export default function App() {
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
+    Inter_700Bold,
   });
+
+  // Hide native splash once fonts are loaded
+  React.useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreenNative.hideAsync();
+    }
+  }, [fontsLoaded]);
 
   if (!fontsLoaded) {
     return null;
