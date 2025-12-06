@@ -1,9 +1,9 @@
 /**
  * Home Screen - Casa Latina Premium MVP
- * Premium events feed with Firebase integration and Signature Experiences
+ * Premium events feed with Firebase integration and Featured Experiences
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   FlatList,
   SectionList,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Timestamp } from 'firebase/firestore';
 import { useTheme } from '../hooks/useTheme';
 import { HomeHeader } from '../components/HomeHeader';
@@ -29,13 +30,53 @@ import { EventDoc } from '../models/firestore';
 import { showcaseEvents, EventData } from '../data/mockEvents';
 import { t } from '../i18n';
 
+const FEATURED_RSVPS_KEY = '@casa_latina_featured_rsvps';
+
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
   const { user, userDoc } = useAuth();
   const insets = useSafeAreaInsets();
   const [selectedFilter, setSelectedFilter] = useState<RsvpFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [featuredRsvps, setFeaturedRsvps] = useState<string[]>([]);
   const city = userDoc?.city || 'Miami';
+
+  // Load featured RSVPs from storage
+  useEffect(() => {
+    const loadFeaturedRsvps = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(FEATURED_RSVPS_KEY);
+        if (stored) {
+          setFeaturedRsvps(JSON.parse(stored));
+        }
+      } catch (error) {
+        console.error('Error loading featured RSVPs:', error);
+      }
+    };
+    loadFeaturedRsvps();
+  }, []);
+
+  // Save featured RSVP
+  const saveFeaturedRsvp = async (eventId: string) => {
+    try {
+      const newRsvps = [...featuredRsvps, eventId];
+      setFeaturedRsvps(newRsvps);
+      await AsyncStorage.setItem(FEATURED_RSVPS_KEY, JSON.stringify(newRsvps));
+    } catch (error) {
+      console.error('Error saving featured RSVP:', error);
+    }
+  };
+
+  // Remove featured RSVP
+  const removeFeaturedRsvp = async (eventId: string) => {
+    try {
+      const newRsvps = featuredRsvps.filter(id => id !== eventId);
+      setFeaturedRsvps(newRsvps);
+      await AsyncStorage.setItem(FEATURED_RSVPS_KEY, JSON.stringify(newRsvps));
+    } catch (error) {
+      console.error('Error removing featured RSVP:', error);
+    }
+  };
   
   const { events, loading } = useEventsWithRsvp(city);
   const styles = createStyles(theme, insets.bottom);
@@ -113,11 +154,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return filtered;
   }, [events, selectedFilter, searchQuery, user?.uid]);
 
-  // Filter showcase events based on search
+  // Filter showcase events based on search and RSVP filter
   const filteredShowcaseEvents = useMemo(() => {
+    let filtered = showcaseEvents;
+    
+    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      return showcaseEvents.filter(
+      filtered = filtered.filter(
         (event) =>
           event.title.toLowerCase().includes(query) ||
           event.neighborhood.toLowerCase().includes(query) ||
@@ -125,8 +169,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           (event.venueName && event.venueName.toLowerCase().includes(query))
       );
     }
-    return showcaseEvents;
-  }, [searchQuery]);
+    
+    // Apply RSVP filter for "going"
+    if (selectedFilter === 'going') {
+      filtered = filtered.filter(event => featuredRsvps.includes(event.id));
+    }
+    
+    return filtered;
+  }, [searchQuery, selectedFilter, featuredRsvps]);
+  
+  // Get featured events that user is going to (for "Going" tab)
+  const goingFeaturedEvents = useMemo(() => {
+    return showcaseEvents.filter(event => featuredRsvps.includes(event.id));
+  }, [featuredRsvps]);
 
   const handleEventPress = (eventId: string) => {
     navigation.navigate('EventDetails', { eventId });
@@ -138,9 +193,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       return;
     }
 
-    // For featured events, show success without Firestore write
+    // For featured events, toggle local RSVP state
     if ('isShowcase' in event && event.isShowcase) {
-      showAlert('Reservation Confirmed', 'You have successfully reserved a spot for this experience.', 'success');
+      const isCurrentlyGoing = featuredRsvps.includes(event.id);
+      if (isCurrentlyGoing) {
+        await removeFeaturedRsvp(event.id);
+        showAlert('Reservation Canceled', 'Your reservation has been canceled', 'success');
+      } else {
+        await saveFeaturedRsvp(event.id);
+        showAlert('Reservation Confirmed', 'You have successfully reserved a spot for this experience.', 'success');
+      }
       return;
     }
 
@@ -224,6 +286,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   const renderShowcaseEventCard = ({ item }: { item: EventData }) => {
+    // Check if user has RSVP'd to this featured event
+    const isGoing = featuredRsvps.includes(item.id);
+    
     return (
       <EventCard
         id={item.id}
@@ -236,8 +301,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         membersOnly={item.isMembersOnly}
         totalSpots={item.capacity}
         spotsRemaining={item.remainingSpots}
-        attendingCount={item.membersCount}
-        rsvpStatus={null} // Never pre-mark RSVP for showcase events
+        attendingCount={item.membersCount + (isGoing ? 1 : 0)}
+        rsvpStatus={isGoing ? 'going' : null}
         imageUrl={item.imageUrl}
         isShowcase={true}
         vibe={item.vibe}
@@ -317,7 +382,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               </>
             )}
 
-            {/* Featured Experiences Section */}
+            {/* Featured Experiences Section - Show on 'all' filter */}
             {selectedFilter === 'all' && hasShowcaseEvents && (
               <>
                 <View style={styles.showcaseSectionHeader}>
@@ -330,6 +395,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 </View>
 
                 {filteredShowcaseEvents.map((event) => (
+                  <View key={event.id}>
+                    {renderShowcaseEventCard({ item: event })}
+                  </View>
+                ))}
+              </>
+            )}
+
+            {/* Featured events user is going to - Show on 'going' filter */}
+            {selectedFilter === 'going' && goingFeaturedEvents.length > 0 && (
+              <>
+                {goingFeaturedEvents.map((event) => (
                   <View key={event.id}>
                     {renderShowcaseEventCard({ item: event })}
                   </View>
