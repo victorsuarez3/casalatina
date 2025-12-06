@@ -17,6 +17,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../providers/AuthProvider';
 import { showAlert } from '../utils/alert';
+import { ASSETS } from '../constants/assets';
 
 export const ApplicationReviewScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -37,7 +38,7 @@ export const ApplicationReviewScreen: React.FC = () => {
     <View style={styles.container}>
       <ImageBackground
         source={{
-          uri: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=90',
+          uri: ASSETS.backgrounds.premiumLounge,
         }}
         style={styles.backgroundImage}
         resizeMode="cover"

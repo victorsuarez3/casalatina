@@ -18,6 +18,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
+import { ASSETS } from '../../constants/assets';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface RegisterScreenProps {
@@ -92,7 +93,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
     >
       <ImageBackground
         source={{
-          uri: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=90',
+          uri: ASSETS.backgrounds.premiumLounge,
         }}
         style={styles.backgroundImage}
         resizeMode="cover"

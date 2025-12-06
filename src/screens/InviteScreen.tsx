@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../providers/AuthProvider';
 import { t } from '../i18n';
 import { showAlert } from '../utils/alert';
+import { ASSETS } from '../constants/assets';
 
 export const InviteScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -72,7 +73,7 @@ export const InviteScreen: React.FC = () => {
       <View style={styles.headerWrapper}>
         <ImageBackground
           source={{
-            uri: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=90',
+            uri: ASSETS.backgrounds.premiumLounge,
           }}
           style={styles.heroImage}
           resizeMode="cover"

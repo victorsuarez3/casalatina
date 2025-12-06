@@ -43,7 +43,7 @@ export const SplashScreen: React.FC = () => {
     <View style={styles.container}>
       <ImageBackground
         source={{
-          uri: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=90',
+          uri: 'https://plus.unsplash.com/premium_photo-1725889036084-b7874a628773?q=80&w=1040&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
         }}
         style={styles.backgroundImage}
         resizeMode="cover"
@@ -66,7 +66,7 @@ export const SplashScreen: React.FC = () => {
         >
           <Text style={styles.logo}>Casa Latina</Text>
           <View style={styles.divider} />
-          <Text style={styles.tagline}>Your private Latin events club</Text>
+          <Text style={styles.tagline}>Your Exclusive Latin Social Club</Text>
         </Animated.View>
       </ImageBackground>
     </View>

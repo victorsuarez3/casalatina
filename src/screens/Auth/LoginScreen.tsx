@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { t } from '../../i18n';
+import { ASSETS } from '../../constants/assets';
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -77,7 +78,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     >
       <ImageBackground
         source={{
-          uri: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=90',
+          uri: ASSETS.backgrounds.premiumLounge,
         }}
         style={styles.backgroundImage}
         resizeMode="cover"

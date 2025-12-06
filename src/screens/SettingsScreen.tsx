@@ -21,6 +21,7 @@ import { useAuth } from '../providers/AuthProvider';
 import { SettingsScreenProps } from '../navigation/types';
 import { deleteAccount } from '../services/auth';
 import { showAlert } from '../utils/alert';
+import { ASSETS } from '../constants/assets';
 
 interface SettingsItem {
   id: string;
@@ -141,7 +142,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
     <View style={styles.container}>
       <ImageBackground
         source={{
-          uri: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=90',
+          uri: ASSETS.backgrounds.premiumLounge,
         }}
         style={styles.backgroundImage}
         resizeMode="cover"
