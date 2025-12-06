@@ -31,9 +31,7 @@ export const PendingApprovalScreen: React.FC<PendingApprovalScreenProps> = ({
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={{
-          uri: ASSETS.backgrounds.premiumLounge,
-        }}
+        source={ASSETS.backgrounds.premiumLounge}
         style={styles.backgroundImage}
         resizeMode="cover"
       >

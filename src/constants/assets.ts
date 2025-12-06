@@ -10,7 +10,7 @@ export const ASSETS = {
   // Background Images
   backgrounds: {
     // Premium lounge/social background - warm, sophisticated atmosphere
-    premiumLounge: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=90',
+    premiumLounge: require('../../assets/backgrounds/party_background.webp'),
   },
 
   // Add other centralized assets here as needed
@@ -18,6 +18,6 @@ export const ASSETS = {
   // illustrations: {},
 } as const;
 
-// Type-safe access to asset URLs
+// Type-safe access to asset modules
 export type AssetCategory = keyof typeof ASSETS;
 export type BackgroundAsset = keyof typeof ASSETS.backgrounds;
