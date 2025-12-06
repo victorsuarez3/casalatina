@@ -8,30 +8,121 @@
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase/config';
 
+// Constants for validation
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
+
+/**
+ * Custom error class for storage operations
+ */
+export class StorageError extends Error {
+  code: string;
+  
+  constructor(message: string, code: string) {
+    super(message);
+    this.name = 'StorageError';
+    this.code = code;
+  }
+}
+
+/**
+ * Validates file before upload
+ */
+function validateFile(blob: Blob): void {
+  // Check file size
+  if (blob.size > MAX_FILE_SIZE_BYTES) {
+    const sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
+    throw new StorageError(
+      `Image is too large (${sizeMB}MB). Maximum size is ${MAX_FILE_SIZE_MB}MB. Please choose a smaller image.`,
+      'file-too-large'
+    );
+  }
+
+  // Check file type
+  if (!ALLOWED_MIME_TYPES.includes(blob.type) && blob.type !== '') {
+    throw new StorageError(
+      'Invalid file type. Please select a JPEG, PNG, or WebP image.',
+      'invalid-file-type'
+    );
+  }
+}
+
+/**
+ * Parses Firebase Storage error codes into user-friendly messages
+ */
+function parseStorageError(error: any): StorageError {
+  const errorCode = error?.code || '';
+  
+  switch (errorCode) {
+    case 'storage/unauthorized':
+      return new StorageError(
+        'You don\'t have permission to upload photos. Please try logging in again.',
+        'unauthorized'
+      );
+    case 'storage/canceled':
+      return new StorageError(
+        'Upload was cancelled.',
+        'cancelled'
+      );
+    case 'storage/retry-limit-exceeded':
+      return new StorageError(
+        'Upload failed due to network issues. Please check your connection and try again.',
+        'network-error'
+      );
+    case 'storage/quota-exceeded':
+      return new StorageError(
+        'Storage quota exceeded. Please contact support.',
+        'quota-exceeded'
+      );
+    case 'storage/invalid-format':
+      return new StorageError(
+        'Invalid image format. Please select a valid image file.',
+        'invalid-format'
+      );
+    default:
+      return new StorageError(
+        'Unable to upload photo. Please check your connection and try again.',
+        'unknown'
+      );
+  }
+}
+
 /**
  * Uploads a profile photo to Firebase Storage
  * 
  * @param userId - The user's UID
  * @param uri - Local URI of the image to upload
  * @returns Promise with the download URL of the uploaded image
+ * @throws StorageError with user-friendly message
  */
 export async function uploadProfilePhoto(
   userId: string,
   uri: string
 ): Promise<string> {
   try {
+    // Fetch the image as blob
+    const response = await fetch(uri);
+    if (!response.ok) {
+      throw new StorageError(
+        'Could not read the selected image. Please try selecting a different photo.',
+        'read-error'
+      );
+    }
+    
+    const blob = await response.blob();
+    
+    // Validate file before upload
+    validateFile(blob);
+
     // Create a unique filename with timestamp to bust cache
     const timestamp = Date.now();
     const filename = `profile_${timestamp}.jpg`;
     const storageRef = ref(storage, `profiles/${userId}/${filename}`);
 
-    // Fetch the image as blob
-    const response = await fetch(uri);
-    const blob = await response.blob();
-
     // Upload to Firebase Storage
     const snapshot = await uploadBytes(storageRef, blob, {
-      contentType: 'image/jpeg',
+      contentType: blob.type || 'image/jpeg',
       customMetadata: {
         userId,
         uploadedAt: new Date().toISOString(),
@@ -43,8 +134,14 @@ export async function uploadProfilePhoto(
     
     return downloadURL;
   } catch (error) {
+    // Re-throw StorageError as-is
+    if (error instanceof StorageError) {
+      throw error;
+    }
+    
+    // Parse Firebase errors
     console.error('Error uploading profile photo:', error);
-    throw new Error('Failed to upload profile photo');
+    throw parseStorageError(error);
   }
 }
 

@@ -190,20 +190,41 @@ export const ProfileAvatar = memo(({
         
         try {
           await onImageSelected(result.assets[0].uri);
-        } catch (error) {
-          Alert.alert(
-            'Upload Failed',
-            'Unable to update your profile picture. Please try again.',
-            [{ text: 'OK' }]
-          );
+        } catch (error: any) {
+          // Show specific error message from StorageError
+          const title = getErrorTitle(error?.code);
+          const message = error?.message || 'Unable to update your profile picture. Please try again.';
+          
+          Alert.alert(title, message, [{ text: 'OK' }]);
         } finally {
           setIsLoading(false);
         }
       }
     } catch (error) {
       console.error('Image picker error:', error);
+      Alert.alert(
+        'Error',
+        'Could not open photo library. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
   }, [editable, onImageSelected]);
+
+  // Get appropriate error title based on error code
+  const getErrorTitle = (code?: string): string => {
+    switch (code) {
+      case 'file-too-large':
+        return 'Image Too Large';
+      case 'invalid-file-type':
+        return 'Invalid Image';
+      case 'unauthorized':
+        return 'Permission Denied';
+      case 'network-error':
+        return 'Connection Error';
+      default:
+        return 'Upload Failed';
+    }
+  };
 
   const styles = createStyles(theme, size);
 
