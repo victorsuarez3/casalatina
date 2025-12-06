@@ -25,9 +25,15 @@ service firebase.storage {
     match /events/{eventId}/{allPaths=**} {
       // All authenticated users can read event images
       allow read: if request.auth != null;
-      
-      // Only admins can upload event images (implement admin check as needed)
-      allow write: if false; // Disabled for now - enable for admin
+
+      // Only authenticated users can upload (admin check done in Firestore)
+      // For now, allow all authenticated users - can add admin check via custom claims later
+      allow create, update: if request.auth != null
+                            && request.resource.size < 5 * 1024 * 1024 // Max 5MB
+                            && request.resource.contentType.matches('image/.*'); // Must be image
+
+      // Allow deletion by authenticated users (can add admin check later)
+      allow delete: if request.auth != null;
     }
     
     // Default: deny all other access

@@ -12,18 +12,26 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Image,
+  Pressable,
 } from 'react-native';
 import { AdminGuard } from '../../components/AdminGuard';
 import { useTheme } from '../../hooks/useTheme';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { createEvent, CreateEventData } from '../../services/admin';
 import { showAlert } from '../../utils/alert';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { uploadEventPhoto } from '../../services/storageService';
 
 export const AdminEventCreateScreen: React.FC = () => {
   const { theme } = useTheme();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [formData, setFormData] = useState<CreateEventData>({
     title: '',
@@ -33,16 +41,63 @@ export const AdminEventCreateScreen: React.FC = () => {
     location: '',
     price: undefined,
     capacity: 50,
-    city: '',
-    type: '',
+    city: 'Miami',
+    type: 'COCTEL_INTIMO',
     membersOnly: false,
     description: '',
   });
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, insets.top, insets.bottom);
+
+  const handlePickImage = async () => {
+    try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== 'granted') {
+        showAlert(
+          'Permission Required',
+          'Please allow access to your photo library to upload event images.',
+          'info'
+        );
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setUploadingImage(true);
+        try {
+          // Generate a unique event ID for the image path
+          const tempEventId = `temp_${Date.now()}`;
+          const imageUrl = await uploadEventPhoto(tempEventId, result.assets[0].uri);
+          setFormData({ ...formData, image: imageUrl });
+          showAlert('Success', 'Image uploaded successfully', 'success');
+        } catch (error: any) {
+          showAlert('Error', error?.message || 'Failed to upload image', 'error');
+        } finally {
+          setUploadingImage(false);
+        }
+      }
+    } catch (error) {
+      console.error('Image picker error:', error);
+      showAlert('Error', 'Could not open photo library', 'error');
+    }
+  };
 
   const handleSubmit = async () => {
     if (!formData.title || !formData.location || !formData.capacity) {
       showAlert('Error', 'Please fill in all required fields', 'error');
+      return;
+    }
+
+    if (!formData.image) {
+      showAlert('Error', 'Please upload an event image', 'error');
       return;
     }
 
@@ -60,194 +115,323 @@ export const AdminEventCreateScreen: React.FC = () => {
 
   return (
     <AdminGuard>
-      <ScrollView style={styles.container}>
-        <Text style={styles.title}>Create Event</Text>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Title *</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.title}
-            onChangeText={(text) => setFormData({ ...formData, title: text })}
-            placeholder="Event title"
-            placeholderTextColor={theme.colors.textTertiary}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Subtitle</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.subtitle}
-            onChangeText={(text) => setFormData({ ...formData, subtitle: text })}
-            placeholder="Event subtitle"
-            placeholderTextColor={theme.colors.textTertiary}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Image URL *</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.image}
-            onChangeText={(text) => setFormData({ ...formData, image: text })}
-            placeholder="https://..."
-            placeholderTextColor={theme.colors.textTertiary}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Date & Time *</Text>
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
           <TouchableOpacity
-            style={styles.input}
-            onPress={() => setShowDatePicker(true)}
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
           >
-            <Text style={styles.dateText}>
-              {formData.date.toLocaleString()}
-            </Text>
+            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
           </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              value={
-                formData.date instanceof Date
-                  ? formData.date
-                  : (formData.date as any)?.toDate
-                  ? (formData.date as any).toDate()
-                  : new Date(formData.date as any)
-              }
-              mode="datetime"
-              display="default"
-              onChange={(event, selectedDate) => {
-                setShowDatePicker(false);
-                if (selectedDate) {
-                  setFormData({ ...formData, date: selectedDate });
-                }
-              }}
-            />
-          )}
+          <Text style={styles.headerTitle}>Create Event</Text>
+          <View style={styles.backButton} />
         </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Location *</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.location}
-            onChangeText={(text) => setFormData({ ...formData, location: text })}
-            placeholder="Event location"
-            placeholderTextColor={theme.colors.textTertiary}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>City</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.city}
-            onChangeText={(text) => setFormData({ ...formData, city: text })}
-            placeholder="Miami"
-            placeholderTextColor={theme.colors.textTertiary}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Type</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.type}
-            onChangeText={(text) => setFormData({ ...formData, type: text })}
-            placeholder="COCTEL_INTIMO"
-            placeholderTextColor={theme.colors.textTertiary}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Price</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.price?.toString() || ''}
-            onChangeText={(text) =>
-              setFormData({
-                ...formData,
-                price: text ? parseFloat(text) : undefined,
-              })
-            }
-            placeholder="0"
-            keyboardType="numeric"
-            placeholderTextColor={theme.colors.textTertiary}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Capacity *</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.capacity?.toString() || ''}
-            onChangeText={(text) =>
-              setFormData({
-                ...formData,
-                capacity: parseInt(text) || 0,
-              })
-            }
-            placeholder="50"
-            keyboardType="numeric"
-            placeholderTextColor={theme.colors.textTertiary}
-          />
-        </View>
-
-        <TouchableOpacity
-          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={loading}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {loading ? (
-            <ActivityIndicator color={theme.colors.pureBlack} />
-          ) : (
-            <Text style={styles.submitButtonText}>Create Event</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
+          {/* Event Image Upload - First */}
+          <View style={styles.imageSection}>
+            <Text style={styles.label}>Event Image *</Text>
+            <Pressable
+              style={styles.imageUploadContainer}
+              onPress={handlePickImage}
+              disabled={uploadingImage}
+            >
+              {formData.image ? (
+                <>
+                  <Image source={{ uri: formData.image }} style={styles.eventImage} />
+                  <View style={styles.imageOverlay}>
+                    <Ionicons name="camera" size={32} color={theme.colors.text} />
+                    <Text style={styles.imageOverlayText}>Change Image</Text>
+                  </View>
+                </>
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  {uploadingImage ? (
+                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                  ) : (
+                    <>
+                      <Ionicons name="image-outline" size={48} color={theme.colors.textSecondary} />
+                      <Text style={styles.imagePlaceholderText}>Tap to upload image</Text>
+                      <Text style={styles.imagePlaceholderHint}>16:9 aspect ratio recommended</Text>
+                    </>
+                  )}
+                </View>
+              )}
+            </Pressable>
+          </View>
+
+          {/* Form Fields */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Title *</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.title}
+              onChangeText={(text) => setFormData({ ...formData, title: text })}
+              placeholder="Event title"
+              placeholderTextColor={theme.colors.textTertiary}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Subtitle</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.subtitle}
+              onChangeText={(text) => setFormData({ ...formData, subtitle: text })}
+              placeholder="Event subtitle"
+              placeholderTextColor={theme.colors.textTertiary}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Date & Time *</Text>
+            <TouchableOpacity
+              style={styles.dateInput}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons name="calendar-outline" size={20} color={theme.colors.textSecondary} />
+              <Text style={styles.dateText}>
+                {formData.date.toLocaleString()}
+              </Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={
+                  formData.date instanceof Date
+                    ? formData.date
+                    : (formData.date as any)?.toDate
+                    ? (formData.date as any).toDate()
+                    : new Date(formData.date as any)
+                }
+                mode="datetime"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) {
+                    setFormData({ ...formData, date: selectedDate });
+                  }
+                }}
+              />
+            )}
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Location *</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.location}
+              onChangeText={(text) => setFormData({ ...formData, location: text })}
+              placeholder="Event location"
+              placeholderTextColor={theme.colors.textTertiary}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>City</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.city}
+              onChangeText={(text) => setFormData({ ...formData, city: text })}
+              placeholder="Miami"
+              placeholderTextColor={theme.colors.textTertiary}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Type</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.type}
+              onChangeText={(text) => setFormData({ ...formData, type: text })}
+              placeholder="COCTEL_INTIMO"
+              placeholderTextColor={theme.colors.textTertiary}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Price</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.price?.toString() || ''}
+              onChangeText={(text) =>
+                setFormData({
+                  ...formData,
+                  price: text ? parseFloat(text) : undefined,
+                })
+              }
+              placeholder="0"
+              keyboardType="numeric"
+              placeholderTextColor={theme.colors.textTertiary}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Capacity *</Text>
+            <TextInput
+              style={styles.input}
+              value={formData.capacity?.toString() || ''}
+              onChangeText={(text) =>
+                setFormData({
+                  ...formData,
+                  capacity: parseInt(text) || 0,
+                })
+              }
+              placeholder="50"
+              keyboardType="numeric"
+              placeholderTextColor={theme.colors.textTertiary}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={theme.colors.pureBlack} />
+            ) : (
+              <Text style={styles.submitButtonText}>Create Event</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
     </AdminGuard>
   );
 };
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, topInset: number, bottomInset: number) =>
   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
-      padding: theme.spacing.lg,
     },
-    title: {
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingTop: topInset + 16,
+      paddingHorizontal: theme.spacing.md,
+      paddingBottom: theme.spacing.lg,
+      backgroundColor: theme.colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerTitle: {
       ...theme.typography.sectionTitle,
       color: theme.colors.text,
+      fontSize: 20,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: theme.spacing.md,
+      paddingTop: theme.spacing.lg,
+      paddingBottom: bottomInset + 120, // Extra padding for keyboard and bottom nav
+    },
+    imageSection: {
       marginBottom: theme.spacing.xl,
     },
+    imageUploadContainer: {
+      width: '100%',
+      aspectRatio: 16 / 9,
+      borderRadius: theme.borderRadius.lg,
+      overflow: 'hidden',
+      backgroundColor: theme.colors.surface,
+      borderWidth: 2,
+      borderColor: theme.colors.border,
+      borderStyle: 'dashed',
+    },
+    eventImage: {
+      width: '100%',
+      height: '100%',
+      resizeMode: 'cover',
+    },
+    imageOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      opacity: 0,
+    },
+    imageOverlayText: {
+      ...theme.typography.label,
+      color: theme.colors.text,
+      marginTop: theme.spacing.xs,
+    },
+    imagePlaceholder: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: theme.spacing.xl,
+    },
+    imagePlaceholderText: {
+      ...theme.typography.body,
+      color: theme.colors.textSecondary,
+      marginTop: theme.spacing.md,
+      textAlign: 'center',
+    },
+    imagePlaceholderHint: {
+      ...theme.typography.caption,
+      color: theme.colors.textTertiary,
+      marginTop: theme.spacing.xs,
+      textAlign: 'center',
+    },
     formGroup: {
-      marginBottom: theme.spacing.md,
+      marginBottom: theme.spacing.lg,
     },
     label: {
       ...theme.typography.label,
       color: theme.colors.text,
-      marginBottom: theme.spacing.xs,
+      marginBottom: theme.spacing.sm,
+      fontSize: 15,
+      fontWeight: '600',
     },
     input: {
       backgroundColor: theme.colors.surface,
       borderWidth: 1,
       borderColor: theme.colors.border,
       borderRadius: theme.borderRadius.md,
-      padding: theme.spacing.md,
+      padding: theme.spacing.md + 2,
       color: theme.colors.text,
       ...theme.typography.body,
+      fontSize: 15,
+    },
+    dateInput: {
+      backgroundColor: theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: theme.borderRadius.md,
+      padding: theme.spacing.md + 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.spacing.sm,
     },
     dateText: {
       ...theme.typography.body,
       color: theme.colors.text,
+      fontSize: 15,
+      flex: 1,
     },
     submitButton: {
       backgroundColor: theme.colors.primary,
-      padding: theme.spacing.md,
+      padding: theme.spacing.md + 4,
       borderRadius: theme.borderRadius.md,
-      marginTop: theme.spacing.lg,
+      marginTop: theme.spacing.xl,
+      marginBottom: theme.spacing.md,
+      ...theme.shadows.md,
     },
     submitButtonDisabled: {
       opacity: 0.5,
@@ -257,6 +441,7 @@ const createStyles = (theme: any) =>
       color: theme.colors.pureBlack,
       textAlign: 'center',
       fontWeight: '600',
+      fontSize: 16,
     },
   });
 

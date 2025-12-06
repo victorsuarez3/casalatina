@@ -184,11 +184,68 @@ export async function uploadProfilePhoto(
 
 /**
  * Gets the storage path for a user's profile photos
- * 
+ *
  * @param userId - The user's UID
  * @returns The storage path string
  */
 export function getProfilePhotoPath(userId: string): string {
   return `profiles/${userId}`;
+}
+
+/**
+ * Uploads an event photo to Firebase Storage
+ *
+ * @param eventId - The event's ID (can be temporary for new events)
+ * @param uri - Local URI of the image to upload
+ * @returns Promise with the download URL of the uploaded image
+ * @throws StorageError with user-friendly message
+ */
+export async function uploadEventPhoto(
+  eventId: string,
+  uri: string
+): Promise<string> {
+  try {
+    // Fetch the image as blob
+    const response = await fetch(uri);
+    if (!response.ok) {
+      throw new StorageError(
+        'Could not read the selected image. Please try selecting a different photo.',
+        'read-error'
+      );
+    }
+
+    const blob = await response.blob();
+
+    // Validate file before upload
+    validateFile(blob);
+
+    // Create a unique filename with timestamp
+    const timestamp = Date.now();
+    const filename = `event_${timestamp}.jpg`;
+    const storageRef = ref(storage, `events/${eventId}/${filename}`);
+
+    // Upload with metadata
+    const snapshot = await uploadBytes(storageRef, blob, {
+      contentType: 'image/jpeg',
+      customMetadata: {
+        eventId,
+        uploadedAt: new Date().toISOString(),
+      },
+    });
+
+    // Get the download URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+
+    return downloadURL;
+  } catch (error) {
+    // Re-throw StorageError as-is
+    if (error instanceof StorageError) {
+      throw error;
+    }
+
+    // Parse Firebase errors
+    console.error('Error uploading event photo:', error);
+    throw parseStorageError(error);
+  }
 }
 
