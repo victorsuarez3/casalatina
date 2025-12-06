@@ -110,37 +110,6 @@ export default function App() {
     Inter_700Bold,
   });
 
-  // Limpiar caché corrupta de Firestore (SOLUCIÓN GEMINI - ejecutar una vez)
-  // TODO: Remover este código después de que funcione correctamente
-  React.useEffect(() => {
-    const clearCorruptedCache = async () => {
-      try {
-        // Solo ejecutar una vez - usar una flag en AsyncStorage para no ejecutar siempre
-        const { db } = await import('./src/firebase/config');
-        const { terminate, clearIndexedDbPersistence } = await import('firebase/firestore');
-        const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-        
-        const cacheCleared = await AsyncStorage.getItem('firestore_cache_cleared');
-        if (!cacheCleared) {
-          console.log('🧹 Limpiando caché corrupta de Firestore (una sola vez)...');
-          await terminate(db);
-          await clearIndexedDbPersistence(db);
-          await AsyncStorage.setItem('firestore_cache_cleared', 'true');
-          console.log('✅ Caché de Firestore limpiada exitosamente');
-          // Recargar la app para reconectar con caché limpia
-          // No hacemos reload automático, el usuario puede hacerlo manualmente
-        }
-      } catch (e: any) {
-        // Es normal que falle si no hay persistencia o es la primera vez
-        if (e.code !== 'unimplemented' && !e.message?.includes('No active instance')) {
-          console.log('⚠️ No se pudo limpiar la caché (normal si es la primera vez):', e.message);
-        }
-      }
-    };
-    
-    clearCorruptedCache();
-  }, []);
-
   // Hide native splash once fonts are loaded
   React.useEffect(() => {
     if (fontsLoaded) {

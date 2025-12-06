@@ -2,28 +2,44 @@ import 'dotenv/config';
 
 export default {
   expo: {
-    name: 'casalatina',
+    name: 'Casa Latina',
     slug: 'casalatina',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
     newArchEnabled: true,
+    description: 'An exclusive members-only community connecting Latinos through curated events and experiences in Miami.',
+    primaryColor: '#D5C4A1',
     splash: {
       image: './assets/icon.png',
       resizeMode: 'contain',
-      backgroundColor: '#000000', // Pure black to match app background
+      backgroundColor: '#000000',
     },
     ios: {
       supportsTablet: true,
+      bundleIdentifier: 'com.casalatina.app',
+      buildNumber: '1',
+      infoPlist: {
+        NSPhotoLibraryUsageDescription: 'Casa Latina needs access to your photo library to upload profile pictures and share event photos.',
+        NSCameraUsageDescription: 'Casa Latina needs camera access to take profile pictures.',
+        NSPhotoLibraryAddUsageDescription: 'Casa Latina needs permission to save photos to your library.',
+      },
     },
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/icon-transparent.png',
         backgroundColor: '#000000',
       },
+      package: 'com.casalatina.app',
+      versionCode: 1,
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
+      permissions: [
+        'READ_EXTERNAL_STORAGE',
+        'WRITE_EXTERNAL_STORAGE',
+        'CAMERA',
+      ],
     },
     web: {
       favicon: './assets/favicon.png',

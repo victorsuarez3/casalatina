@@ -19,6 +19,8 @@ import { useTheme } from '../hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../providers/AuthProvider';
 import { SettingsScreenProps } from '../navigation/types';
+import { deleteAccount } from '../services/auth';
+import { showAlert } from '../utils/alert';
 
 interface SettingsItem {
   id: string;
@@ -74,10 +76,23 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
 
   const handleDeleteAccount = async () => {
     setShowDeleteModal(false);
-    // TODO: Implement delete account logic
-    console.log('Delete account');
-    // For now, just sign out
-    await logout();
+
+    if (!user) {
+      showAlert('Error', 'No user session found', 'error');
+      return;
+    }
+
+    try {
+      await deleteAccount(user);
+      // User will be automatically logged out when account is deleted
+      // App.tsx will handle navigation to auth screen
+    } catch (error: any) {
+      showAlert(
+        'Delete Account Failed',
+        error?.message || 'Could not delete your account. Please try again.',
+        'error'
+      );
+    }
   };
 
   const settingsItems: SettingsItem[] = [
