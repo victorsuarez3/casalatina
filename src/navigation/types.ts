@@ -25,7 +25,6 @@ export type TabParamList = {
 };
 
 export type AuthFlowParamList = {
-  Welcome: undefined;
   ApplicationStart: { inviteCode?: string };
   ApplicationReview: undefined;
   Home: undefined;
@@ -35,7 +34,6 @@ export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'HomeMa
 export type EventDetailsScreenProps = NativeStackScreenProps<RootStackParamList, 'EventDetails'>;
 export type ProfileScreenProps = NativeStackScreenProps<RootStackParamList, 'ProfileMain'>;
 export type SettingsScreenProps = NativeStackScreenProps<RootStackParamList, 'Settings'>;
-export type WelcomeScreenProps = NativeStackScreenProps<AuthFlowParamList, 'Welcome'>;
 export type ApplicationStartScreenProps = NativeStackScreenProps<AuthFlowParamList, 'ApplicationStart'>;
 export type ApplicationReviewScreenProps = NativeStackScreenProps<AuthFlowParamList, 'ApplicationReview'>;
 
