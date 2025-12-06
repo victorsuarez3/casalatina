@@ -82,7 +82,7 @@ export const ApplicationStartScreen: React.FC = () => {
             updateData.invitedBy = inviter.id;
             updateData.invitedAt = new Date().toISOString();
             // Update referral source to show it was via invitation
-            updateData.heardAboutUs = `Invited by ${inviter.fullName || 'Casa Latina member'}`;
+            updateData.heardAboutUs = `Invited by ${inviter.name || 'Casa Latina member'}`;
           }
         }
 

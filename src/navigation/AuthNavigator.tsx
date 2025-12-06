@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
 import { showAlert } from '../utils/alert';
 import { SplashScreen } from '../screens/Auth/SplashScreen';
 import { LoginScreen } from '../screens/Auth/LoginScreen';
@@ -182,8 +183,9 @@ const ApplicationFormScreenWrapper: React.FC<AuthNavigatorProps & {
   setLoading: (loading: boolean) => void;
   loading: boolean;
 }> = ({ navigation, setLoading, loading, route }) => {
+  const routeParams = route.params as { inviteCode?: string };
   const { user, updateUser } = useAuth();
-  const inviteCode = route?.params?.inviteCode;
+  const inviteCode = routeParams?.inviteCode;
 
   const handleApplicationSubmit = async (formData: ApplicationFormData) => {
     if (!user) {
@@ -221,7 +223,7 @@ const ApplicationFormScreenWrapper: React.FC<AuthNavigatorProps & {
           applicationData.invitedBy = inviter.id;
           applicationData.invitedAt = new Date().toISOString();
           // Update referral source to show it was via invitation
-          applicationData.heardAboutUs = `Invited by ${inviter.fullName || 'Casa Latina member'}`;
+          applicationData.heardAboutUs = `Invited by ${inviter.name || 'Casa Latina member'}`;
         }
       }
 

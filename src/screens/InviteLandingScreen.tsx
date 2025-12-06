@@ -117,11 +117,11 @@ export const InviteLandingScreen: React.FC<InviteLandingScreenProps> = ({
           <View style={styles.inviterHeader}>
             <View style={styles.inviterAvatar}>
               <Text style={styles.inviterInitial}>
-                {inviter.fullName?.charAt(0)?.toUpperCase() || '?'}
+                {inviter.name?.charAt(0)?.toUpperCase() || '?'}
               </Text>
             </View>
             <View style={styles.inviterInfo}>
-              <Text style={styles.inviterName}>{inviter.fullName || 'Casa Latina Member'}</Text>
+              <Text style={styles.inviterName}>{inviter.name || 'Casa Latina Member'}</Text>
               <Text style={styles.inviterRole}>Member</Text>
             </View>
           </View>
@@ -129,7 +129,7 @@ export const InviteLandingScreen: React.FC<InviteLandingScreenProps> = ({
           <View style={styles.inviteMessage}>
             <Ionicons name="mail-outline" size={20} color={theme.colors.primary} />
             <Text style={styles.inviteMessageText}>
-              {inviter.fullName || 'A Casa Latina member'} has invited you to join our exclusive community.
+              {inviter.name || 'A Casa Latina member'} has invited you to join our exclusive community.
             </Text>
           </View>
         </View>
