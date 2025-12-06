@@ -28,7 +28,7 @@ import { EventDoc } from '../models/firestore';
 import { t } from '../i18n';
 import { Timestamp } from 'firebase/firestore';
 
-const tabs = ['Our Story', 'Order of the day', 'Dinning'];
+const tabs = ['Overview', 'Details', 'Venue'];
 
 const CATEGORY_LABELS: Record<string, string> = {
   COCTEL_INTIMO: 'CÓCTEL ÍNTIMO',
