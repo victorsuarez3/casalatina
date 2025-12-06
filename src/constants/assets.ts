@@ -10,7 +10,7 @@ export const ASSETS = {
   // Background Images
   backgrounds: {
     // Premium lounge/social background - warm, sophisticated atmosphere
-    premiumLounge: require('../../assets/backgrounds/party_background.webp'),
+    premiumLounge: require('../../assets/backgrounds/official-background.jpeg'),
   },
 
   // Add other centralized assets here as needed
