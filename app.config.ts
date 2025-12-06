@@ -20,7 +20,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.casalatina.app",
-      buildNumber: "1",
+      buildNumber: "2",
       infoPlist: {
         NSPhotoLibraryUsageDescription:
           "Casa Latina needs access to your photo library to upload profile pictures and share event photos.",
@@ -36,7 +36,7 @@ export default {
         backgroundColor: "#000000",
       },
       package: "com.casalatina.app",
-      versionCode: 1,
+      versionCode: 2,
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       permissions: [
@@ -49,6 +49,24 @@ export default {
       favicon: "./assets/favicon.png",
     },
     scheme: "casalatina",
+    plugins: [
+      [
+        "expo-font",
+        {
+          fonts: [
+            "node_modules/@expo-google-fonts/cormorant-garamond/CormorantGaramond_300Light.ttf",
+            "node_modules/@expo-google-fonts/cormorant-garamond/CormorantGaramond_400Regular.ttf",
+            "node_modules/@expo-google-fonts/cormorant-garamond/CormorantGaramond_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/cormorant-garamond/CormorantGaramond_700Bold.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_300Light.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_400Regular.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_500Medium.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/inter/Inter_700Bold.ttf",
+          ],
+        },
+      ],
+    ],
     extra: {
       eas: {
         projectId: "45050d16-7ca5-4645-8876-e8f57321d85c",
