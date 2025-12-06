@@ -305,11 +305,27 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
           {/* Description */}
           <View style={styles.description}>
             <Text style={styles.descriptionText}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-              Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+              {event.description || `Join us for an exclusive ${event.title} experience. Connect with fellow Casa Latina members in one of Miami's most sought-after venues. Limited spots available for this members-only gathering.`}
             </Text>
           </View>
+
+          {/* Vibe & Dress Code - for featured events */}
+          {(event.vibe || event.dressCode) && (
+            <View style={styles.eventExtras}>
+              {event.vibe && (
+                <View style={styles.extraRow}>
+                  <Ionicons name="sparkles-outline" size={16} color={theme.colors.softCream} />
+                  <Text style={styles.extraText}>{event.vibe}</Text>
+                </View>
+              )}
+              {event.dressCode && (
+                <View style={styles.extraRow}>
+                  <Ionicons name="shirt-outline" size={16} color={theme.colors.textSecondary} />
+                  <Text style={styles.extraText}>{event.dressCode}</Text>
+                </View>
+              )}
+            </View>
+          )}
 
           {/* Members Section - Premium */}
           <View style={styles.membersSection}>
@@ -518,6 +534,20 @@ const createStyles = (theme: any, bottomInset: number) => StyleSheet.create({
     ...theme.typography.body,
     color: theme.colors.textSecondary,
     lineHeight: 26,
+  },
+  eventExtras: {
+    marginBottom: theme.spacing.xl,
+    gap: theme.spacing.sm + 2,
+  },
+  extraRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  extraText: {
+    ...theme.typography.bodySmall,
+    color: theme.colors.textSecondary,
+    fontSize: 14,
   },
   membersSection: {
     marginTop: theme.spacing.md + 4,
