@@ -32,7 +32,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/icon-transparent.png",
+        foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#000000",
       },
       package: "com.casalatina.app",
