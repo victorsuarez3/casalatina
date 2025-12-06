@@ -38,11 +38,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // Mock subscription data (will come from backend later)
+  // Subscription data based on current date
+  const today = new Date();
+  const oneYearFromNow = new Date(today);
+  oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+  
   const subscriptionData = {
     status: 'active' as 'active' | 'expired' | 'trial',
-    startDate: '2024-01-15',
-    endDate: '2025-01-15',
+    startDate: today.toISOString().split('T')[0],
+    endDate: oneYearFromNow.toISOString().split('T')[0],
     plan: 'Founding Member',
   };
 
