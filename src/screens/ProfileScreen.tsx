@@ -3,7 +3,7 @@
  * User profile with upcoming and past events
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +21,9 @@ import { EventCard } from '../components/EventCard';
 import { ProfileDetailsSection } from '../components/ProfileDetailsSection';
 import { ProfileScreenProps } from '../navigation/types';
 import { t } from '../i18n';
-import { mockEvents } from '../data/mockEvents';
+import { showcaseEvents } from '../data/mockEvents';
+
+const FEATURED_RSVPS_KEY = '@casa_latina_featured_rsvps';
 
 const tabs = ['upcoming', 'past', 'profile'] as const;
 type TabType = typeof tabs[number];
@@ -30,55 +33,51 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const { userDoc } = useAuth();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabType>('upcoming');
+  const [featuredRsvps, setFeaturedRsvps] = useState<string[]>([]);
   const { upcomingEvents, pastEvents, loading } = useUserEvents();
   const styles = createStyles(theme, insets.top, insets.bottom);
 
-  // Fallback to mock events if no user events found
+  // Load featured RSVPs from storage
+  useEffect(() => {
+    const loadFeaturedRsvps = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(FEATURED_RSVPS_KEY);
+        if (stored) {
+          setFeaturedRsvps(JSON.parse(stored));
+        }
+      } catch (error) {
+        console.error('Error loading featured RSVPs:', error);
+      }
+    };
+    loadFeaturedRsvps();
+  }, []);
+
+  // Get featured events user is going to
+  const goingFeaturedEvents = showcaseEvents
+    .filter(event => featuredRsvps.includes(event.id))
+    .map(mock => ({
+      id: mock.id,
+      title: mock.title,
+      city: mock.city,
+      neighborhood: mock.neighborhood,
+      category: mock.type.toUpperCase().replace(/\s+/g, '_').replace(/&/g, '_').replace(/_+/g, '_') as any,
+      date: mock.date.split('·')[0]?.trim() || 'Sat, Jan 18',
+      time: mock.date.split('·')[1]?.trim() || '8:00 PM',
+      membersOnly: mock.isMembersOnly,
+      totalSpots: mock.capacity,
+      spotsRemaining: mock.remainingSpots,
+      attendingCount: mock.membersCount + 1, // +1 for user
+      imageUrl: mock.imageUrl,
+      rsvpStatus: 'going' as const,
+    }));
+
+  // Get display events based on active tab
   const getDisplayEvents = () => {
     if (activeTab === 'upcoming') {
-      if (upcomingEvents.length > 0) {
-        return upcomingEvents;
-      }
-      // Fallback: show mock events with 'going' status
-      return mockEvents
-        .filter(e => e.rsvpStatus === 'going')
-        .map(mock => ({
-          id: mock.id,
-          title: mock.title,
-          city: mock.city,
-          neighborhood: mock.neighborhood,
-          category: mock.type.toUpperCase().replace(/\s+/g, '_').replace(/&/g, '_').replace(/_+/g, '_') as any,
-          date: mock.date.split('·')[0]?.trim() || 'Vie, 15 Dic',
-          time: mock.date.split('·')[1]?.trim() || '8:00 PM',
-          membersOnly: mock.isMembersOnly,
-          totalSpots: mock.membersCount + mock.remainingSpots,
-          spotsRemaining: mock.remainingSpots,
-          attendingCount: mock.membersCount,
-          imageUrl: mock.imageUrl,
-          rsvpStatus: 'going' as const,
-        }));
+      // Combine Firestore events with featured events user is going to
+      return [...upcomingEvents, ...goingFeaturedEvents];
     } else {
-      if (pastEvents.length > 0) {
-        return pastEvents;
-      }
-      // Fallback: show mock events with 'went' status
-      return mockEvents
-        .filter(e => e.rsvpStatus === 'went')
-        .map(mock => ({
-          id: mock.id,
-          title: mock.title,
-          city: mock.city,
-          neighborhood: mock.neighborhood,
-          category: mock.type.toUpperCase().replace(/\s+/g, '_').replace(/&/g, '_').replace(/_+/g, '_') as any,
-          date: mock.date.split('·')[0]?.trim() || 'Vie, 15 Dic',
-          time: mock.date.split('·')[1]?.trim() || '8:00 PM',
-          membersOnly: mock.isMembersOnly,
-          totalSpots: mock.membersCount + mock.remainingSpots,
-          spotsRemaining: mock.remainingSpots,
-          attendingCount: mock.membersCount,
-          imageUrl: mock.imageUrl,
-          rsvpStatus: 'went' as const,
-        }));
+      return pastEvents;
     }
   };
 
