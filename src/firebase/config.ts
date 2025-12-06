@@ -1,7 +1,8 @@
 /**
  * Firebase Configuration
  *
- * Uses environment variables from .env file (EXPO_PUBLIC_FIREBASE_*)
+ * Uses Expo Constants to access Firebase config from app.config.ts
+ * This ensures the config works in both development and production builds
  *
  * Required Firebase services:
  * - Authentication (Email/Password)
@@ -13,15 +14,25 @@ import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import Constants from 'expo-constants';
+
+// Get Firebase config from app.config.ts via Expo Constants
+const extra = Constants.expoConfig?.extra || {};
 
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  apiKey: extra.firebaseApiKey,
+  authDomain: extra.firebaseAuthDomain,
+  projectId: extra.firebaseProjectId,
+  storageBucket: extra.firebaseStorageBucket,
+  messagingSenderId: extra.firebaseMessagingSenderId,
+  appId: extra.firebaseAppId,
 };
+
+// Validate Firebase config
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error('Firebase configuration is missing. Check app.config.ts');
+  throw new Error('Firebase configuration is incomplete. Please check your app.config.ts file.');
+}
 
 let app: FirebaseApp;
 

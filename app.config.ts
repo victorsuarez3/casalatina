@@ -49,12 +49,13 @@ export default {
       eas: {
         projectId: '45050d16-7ca5-4645-8876-e8f57321d85c',
       },
-      firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-      firebaseAuthDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      firebaseProjectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-      firebaseStorageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      firebaseMessagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      firebaseAppId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+      // Firebase config with fallbacks for production builds
+      firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBPyqFGEdXR9AlBnEP7hxTxg30l3UvpieY',
+      firebaseAuthDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || 'gotham-6fc37.firebaseapp.com',
+      firebaseProjectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || 'gotham-6fc37',
+      firebaseStorageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || 'gotham-6fc37.firebasestorage.app',
+      firebaseMessagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '1013997283624',
+      firebaseAppId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:1013997283624:web:b30b2e7c806cc00f74481d',
     },
   },
 };
