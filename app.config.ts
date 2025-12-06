@@ -44,6 +44,7 @@ export default {
     web: {
       favicon: './assets/favicon.png',
     },
+    scheme: 'casalatina',
     extra: {
       eas: {
         projectId: '45050d16-7ca5-4645-8876-e8f57321d85c',

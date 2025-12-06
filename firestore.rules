@@ -42,11 +42,14 @@ service cloud.firestore {
       // Users can read their own document
       // Admins can read any user document
       allow read: if isOwner(uid) || isAdmin();
-      
+
       // Users can create/update their own document
       // This allows: signup, application submission, profile updates
       allow create, update: if isOwner(uid);
-      
+
+      // Admins can update any user document (for membership approval/rejection)
+      allow update: if isAdmin();
+
       // Only admins can delete user documents
       allow delete: if isAdmin();
     }

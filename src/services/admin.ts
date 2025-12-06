@@ -19,6 +19,8 @@ import {
 import { db } from '../firebase/config';
 import { EventDoc, UserDoc } from '../models/firestore';
 
+type UserDocWithId = UserDoc & { id: string };
+
 const EVENTS_COLLECTION = 'events';
 const USERS_COLLECTION = 'users';
 
@@ -169,17 +171,18 @@ export const getAllEventsAdmin = async (): Promise<EventDoc[]> => {
 /**
  * Get pending members (users with membershipStatus "pending")
  */
-export const getPendingMembers = async (): Promise<UserDoc[]> => {
+export const getPendingMembers = async (): Promise<UserDocWithId[]> => {
   try {
     const usersRef = collection(db, USERS_COLLECTION);
     const q = query(usersRef, where('membershipStatus', '==', 'pending'));
     const querySnapshot = await getDocs(q);
     
-    const users: UserDoc[] = [];
+    const users: UserDocWithId[] = [];
     querySnapshot.forEach((docSnap) => {
       users.push({
+        id: docSnap.id,
         ...docSnap.data(),
-      } as UserDoc);
+      } as UserDocWithId);
     });
 
     // Sort by createdAt descending (newest first)

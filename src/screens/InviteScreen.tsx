@@ -31,7 +31,7 @@ export const InviteScreen: React.FC = () => {
   const styles = createStyles(theme, insets.top, insets.bottom);
 
   const inviteCode = userDoc?.inviteCode || 'CL-0000';
-  const inviteLink = `https://casalatina.app/invite/${inviteCode}`;
+  const inviteLink = `https://casalatinaclub.com/invite/${inviteCode}`;
 
   const handleCopyCode = async () => {
     try {

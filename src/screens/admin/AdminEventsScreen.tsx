@@ -15,6 +15,7 @@ import {
 import { AdminGuard } from '../../components/AdminGuard';
 import { useTheme } from '../../hooks/useTheme';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getAllEventsAdmin, deleteEvent } from '../../services/admin';
 import { EventDoc } from '../../models/firestore';
 import { Timestamp } from 'firebase/firestore';
@@ -23,9 +24,10 @@ import { showAlert } from '../../utils/alert';
 export const AdminEventsScreen: React.FC = () => {
   const { theme } = useTheme();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [events, setEvents] = useState<EventDoc[]>([]);
   const [loading, setLoading] = useState(true);
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, insets.top);
 
   useEffect(() => {
     loadEvents();
@@ -125,7 +127,7 @@ export const AdminEventsScreen: React.FC = () => {
   );
 };
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, topInset: number) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -135,7 +137,9 @@ const createStyles = (theme: any) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: theme.spacing.lg,
+      paddingTop: topInset + theme.spacing.lg,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.lg,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },

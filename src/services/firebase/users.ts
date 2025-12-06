@@ -3,7 +3,7 @@
  * Typed Firestore operations for users
  */
 
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { User } from './types';
 
@@ -68,6 +68,32 @@ export const updateUserInviteCode = async (userId: string, inviteCode: string): 
   } catch (error) {
     console.error('Error updating invite code:', error);
     throw error;
+  }
+};
+
+/**
+ * Get user by invite code
+ */
+export const getUserByInviteCode = async (inviteCode: string): Promise<User | null> => {
+  try {
+    // Note: In a production app, you might want to create an index on inviteCode
+    // For now, we'll query all users (not ideal for large datasets)
+    const usersRef = collection(db, USERS_COLLECTION);
+    const q = query(usersRef, where('inviteCode', '==', inviteCode));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      return {
+        id: doc.id,
+        ...doc.data(),
+      } as User;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error fetching user by invite code:', error);
+    return null;
   }
 };
 

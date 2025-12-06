@@ -15,12 +15,13 @@ import { PendingApprovalScreen } from '../screens/Auth/PendingApprovalScreen';
 import { signUp, signIn } from '../services/auth';
 import { useAuth } from '../providers/AuthProvider';
 import { UserDoc } from '../models/firestore';
+import { getUserByInviteCode } from '../services/firebase/users';
 
 export type AuthStackParamList = {
   Splash: undefined;
   Login: undefined;
   Register: undefined;
-  ApplicationForm: undefined;
+  ApplicationForm: { inviteCode?: string };
   PendingApproval: undefined;
 };
 
@@ -180,8 +181,9 @@ const RegisterScreenWrapper: React.FC<AuthNavigatorProps & {
 const ApplicationFormScreenWrapper: React.FC<AuthNavigatorProps & {
   setLoading: (loading: boolean) => void;
   loading: boolean;
-}> = ({ navigation, setLoading, loading }) => {
+}> = ({ navigation, setLoading, loading, route }) => {
   const { user, updateUser } = useAuth();
+  const inviteCode = route?.params?.inviteCode;
 
   const handleApplicationSubmit = async (formData: ApplicationFormData) => {
     if (!user) {
@@ -211,6 +213,17 @@ const ApplicationFormScreenWrapper: React.FC<AuthNavigatorProps & {
         heardAboutUs: formData.referralSource || undefined,
         membershipStatus: 'pending' as const,
       };
+
+      // Process invite code if provided
+      if (inviteCode) {
+        const inviter = await getUserByInviteCode(inviteCode);
+        if (inviter) {
+          applicationData.invitedBy = inviter.id;
+          applicationData.invitedAt = new Date().toISOString();
+          // Update referral source to show it was via invitation
+          applicationData.heardAboutUs = `Invited by ${inviter.fullName || 'Casa Latina member'}`;
+        }
+      }
 
       // Update user document with application data
       await updateUser(applicationData);

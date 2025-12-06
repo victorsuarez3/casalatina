@@ -15,6 +15,7 @@ import {
 import { AdminGuard } from '../../components/AdminGuard';
 import { useTheme } from '../../hooks/useTheme';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getUserById, approveMember, rejectMember } from '../../services/admin';
 import { UserDoc } from '../../models/firestore';
 import { Timestamp } from 'firebase/firestore';
@@ -24,12 +25,13 @@ export const AdminMemberDetailScreen: React.FC = () => {
   const { theme } = useTheme();
   const navigation = useNavigation();
   const route = useRoute();
+  const insets = useSafeAreaInsets();
   const { userId } = route.params as { userId: string };
-  
+
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [user, setUser] = useState<UserDoc | null>(null);
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, insets.top, insets.bottom);
 
   useEffect(() => {
     loadUser();
@@ -88,19 +90,25 @@ export const AdminMemberDetailScreen: React.FC = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <AdminGuard>
-        <View style={styles.container}>
-          <Text style={styles.errorText}>Member not found</Text>
-        </View>
-      </AdminGuard>
-    );
-  }
+    if (!user) {
+      return (
+        <AdminGuard>
+          <View style={styles.scrollView}>
+            <View style={{ paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.lg }}>
+              <Text style={styles.errorText}>Member not found</Text>
+            </View>
+          </View>
+        </AdminGuard>
+      );
+    }
 
   return (
     <AdminGuard>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.title}>Member Application</Text>
 
         <View style={styles.section}>
@@ -223,12 +231,16 @@ export const AdminMemberDetailScreen: React.FC = () => {
   );
 };
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, topInset: number, bottomInset: number) =>
   StyleSheet.create({
-    container: {
+    scrollView: {
       flex: 1,
       backgroundColor: theme.colors.background,
-      padding: theme.spacing.lg,
+      paddingTop: topInset,
+    },
+    scrollContent: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: bottomInset + 120, // Extra space for tab bar
     },
     loadingContainer: {
       flex: 1,

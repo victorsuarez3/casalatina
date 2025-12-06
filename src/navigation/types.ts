@@ -26,7 +26,7 @@ export type TabParamList = {
 
 export type AuthFlowParamList = {
   Welcome: undefined;
-  ApplicationStart: undefined;
+  ApplicationStart: { inviteCode?: string };
   ApplicationReview: undefined;
   Home: undefined;
 };

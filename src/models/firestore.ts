@@ -37,6 +37,9 @@ export interface UserDoc {
   heardAboutUs?: string;
   // Invite code for referring new members
   inviteCode?: string;
+  // Invitation tracking
+  invitedBy?: string; // User ID of who invited this user
+  invitedAt?: any; // Timestamp when invitation was used
   // Profile photo URL (uploaded to Firebase Storage)
   photoUrl?: string;
   // Profile social fields (editable by user)

@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Linking } from 'react-native';
 import * as SplashScreenNative from 'expo-splash-screen';
 
 // Keep splash screen visible until fonts are loaded
@@ -30,12 +30,40 @@ import { SplashScreen } from './src/screens/SplashScreen';
 import { ApplicationStartScreen } from './src/screens/ApplicationStartScreen';
 import { ApplicationReviewScreen } from './src/screens/ApplicationReviewScreen';
 import { MembershipRejectedScreen } from './src/screens/MembershipRejectedScreen';
+import { InviteLandingScreen } from './src/screens/InviteLandingScreen';
 import { AlertManager } from './src/utils/alert';
 
 function AppContent() {
   const { user, userDoc, loading } = useAuth();
   const [showSplash, setShowSplash] = React.useState(true);
   const [showAuth, setShowAuth] = React.useState(false);
+  const [inviteUrl, setInviteUrl] = React.useState<string | null>(null);
+
+  // Configure basic URL handling for invitations
+  React.useEffect(() => {
+    const handleDeepLink = (event: { url: string }) => {
+      const url = event.url;
+      if (url && url.includes('/invite/')) {
+        setInviteUrl(url);
+      }
+    };
+
+    // Check for initial URL when app is opened
+    Linking.getInitialURL().then((url) => {
+      if (url && url.includes('/invite/')) {
+        setInviteUrl(url);
+      }
+    }).catch((err) => {
+      console.log('Error getting initial URL:', err);
+    });
+
+    // Listen for incoming links when app is already open
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
 
   // Show splash screen while loading or during initial animation
   if (showSplash || loading) {
@@ -74,6 +102,11 @@ function AppContent() {
         <ActivityIndicator size="large" color="#D5C4A1" />
       </View>
     );
+  }
+
+  // Handle invite URLs - show invite landing screen
+  if (inviteUrl) {
+    return <InviteLandingScreen inviteUrl={inviteUrl} onClose={() => setInviteUrl(null)} />;
   }
 
   // Route based on membership status

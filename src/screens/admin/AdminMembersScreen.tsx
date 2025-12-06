@@ -3,7 +3,7 @@
  * List all pending members
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { AdminGuard } from '../../components/AdminGuard';
 import { useTheme } from '../../hooks/useTheme';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getPendingMembers } from '../../services/admin';
 import { UserDoc } from '../../models/firestore';
 
@@ -24,13 +25,16 @@ import { Timestamp } from 'firebase/firestore';
 export const AdminMembersScreen: React.FC = () => {
   const { theme } = useTheme();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [members, setMembers] = useState<UserDocWithId[]>([]);
   const [loading, setLoading] = useState(true);
-  const styles = createStyles(theme);
+  const styles = createStyles(theme, insets.top);
 
-  useEffect(() => {
-    loadMembers();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadMembers();
+    }, [])
+  );
 
   const loadMembers = async () => {
     setLoading(true);
@@ -98,12 +102,14 @@ export const AdminMembersScreen: React.FC = () => {
   );
 };
 
-const createStyles = (theme: any) =>
+const createStyles = (theme: any, topInset: number) =>
   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
-      padding: theme.spacing.lg,
+      paddingTop: topInset + theme.spacing.lg,
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.lg,
     },
     title: {
       ...theme.typography.sectionTitle,

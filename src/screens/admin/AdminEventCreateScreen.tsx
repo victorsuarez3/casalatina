@@ -3,7 +3,7 @@
  * Form to create a new event
  */
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -14,17 +14,32 @@ import {
   ActivityIndicator,
   Image,
   Pressable,
-} from 'react-native';
-import { AdminGuard } from '../../components/AdminGuard';
-import { useTheme } from '../../hooks/useTheme';
-import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { createEvent, CreateEventData } from '../../services/admin';
-import { showAlert } from '../../utils/alert';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { uploadEventPhoto } from '../../services/storageService';
+  Modal,
+} from "react-native";
+import { AdminGuard } from "../../components/AdminGuard";
+import { useTheme } from "../../hooks/useTheme";
+import { useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { createEvent, CreateEventData } from "../../services/admin";
+import { showAlert } from "../../utils/alert";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { uploadEventPhoto } from "../../services/storageService";
+
+// Event types for Casa Latina
+const EVENT_TYPES = [
+  { value: "INTIMATE_COCKTAIL", label: "Intimate Cocktail" },
+  { value: "PRIVATE_DINNER", label: "Private Dinner" },
+  { value: "YACHT_PARTY", label: "Yacht Party" },
+  { value: "ROOFTOP_SOCIAL", label: "Rooftop Social" },
+  { value: "WINE_TASTING", label: "Wine Tasting" },
+  { value: "ART_GALLERY", label: "Art Gallery" },
+  { value: "NETWORKING", label: "Networking Event" },
+  { value: "BEACH_CLUB", label: "Beach Club" },
+  { value: "CULTURAL", label: "Cultural Event" },
+  { value: "WELLNESS", label: "Wellness & Fitness" },
+] as const;
 
 export const AdminEventCreateScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -33,38 +48,40 @@ export const AdminEventCreateScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [formData, setFormData] = useState<CreateEventData>({
-    title: '',
-    subtitle: '',
-    image: '',
+    title: "",
+    subtitle: "",
+    image: "",
     date: new Date() as Date,
-    location: '',
+    location: "",
     price: undefined,
     capacity: 50,
-    city: 'Miami',
-    type: 'COCTEL_INTIMO',
+    city: "Miami",
+    type: "INTIMATE_COCKTAIL",
     membersOnly: false,
-    description: '',
+    description: "",
   });
   const styles = createStyles(theme, insets.top, insets.bottom);
 
   const handlePickImage = async () => {
     try {
       // Request permissions
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-      if (status !== 'granted') {
+      if (status !== "granted") {
         showAlert(
-          'Permission Required',
-          'Please allow access to your photo library to upload event images.',
-          'info'
+          "Permission Required",
+          "Please allow access to your photo library to upload event images.",
+          "info"
         );
         return;
       }
 
       // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [16, 9],
         quality: 0.8,
@@ -75,39 +92,56 @@ export const AdminEventCreateScreen: React.FC = () => {
         try {
           // Generate a unique event ID for the image path
           const tempEventId = `temp_${Date.now()}`;
-          const imageUrl = await uploadEventPhoto(tempEventId, result.assets[0].uri);
+          const imageUrl = await uploadEventPhoto(
+            tempEventId,
+            result.assets[0].uri
+          );
           setFormData({ ...formData, image: imageUrl });
-          showAlert('Success', 'Image uploaded successfully', 'success');
+          showAlert("Success", "Image uploaded successfully", "success");
         } catch (error: any) {
-          showAlert('Error', error?.message || 'Failed to upload image', 'error');
+          showAlert(
+            "Error",
+            error?.message || "Failed to upload image",
+            "error"
+          );
         } finally {
           setUploadingImage(false);
         }
       }
     } catch (error) {
-      console.error('Image picker error:', error);
-      showAlert('Error', 'Could not open photo library', 'error');
+      console.error("Image picker error:", error);
+      showAlert("Error", "Could not open photo library", "error");
     }
   };
 
+  const handleTypeSelect = (typeValue: string) => {
+    setFormData({ ...formData, type: typeValue });
+    setShowTypeDropdown(false);
+  };
+
+  const getSelectedTypeLabel = () => {
+    const selectedType = EVENT_TYPES.find(type => type.value === formData.type);
+    return selectedType ? selectedType.label : "Select Event Type";
+  };
+
   const handleSubmit = async () => {
-    if (!formData.title || !formData.location || !formData.capacity) {
-      showAlert('Error', 'Please fill in all required fields', 'error');
+    if (!formData.title || !formData.location || !formData.capacity || !formData.type) {
+      showAlert("Error", "Please fill in all required fields", "error");
       return;
     }
 
     if (!formData.image) {
-      showAlert('Error', 'Please upload an event image', 'error');
+      showAlert("Error", "Please upload an event image", "error");
       return;
     }
 
     setLoading(true);
     try {
       await createEvent(formData);
-      showAlert('Success', 'Event created successfully', 'success');
+      showAlert("Success", "Event created successfully", "success");
       navigation.goBack();
     } catch (error) {
-      showAlert('Error', 'Failed to create event', 'error');
+      showAlert("Error", "Failed to create event", "error");
     } finally {
       setLoading(false);
     }
@@ -144,21 +178,39 @@ export const AdminEventCreateScreen: React.FC = () => {
             >
               {formData.image ? (
                 <>
-                  <Image source={{ uri: formData.image }} style={styles.eventImage} />
+                  <Image
+                    source={{ uri: formData.image }}
+                    style={styles.eventImage}
+                  />
                   <View style={styles.imageOverlay}>
-                    <Ionicons name="camera" size={32} color={theme.colors.text} />
+                    <Ionicons
+                      name="camera"
+                      size={32}
+                      color={theme.colors.text}
+                    />
                     <Text style={styles.imageOverlayText}>Change Image</Text>
                   </View>
                 </>
               ) : (
                 <View style={styles.imagePlaceholder}>
                   {uploadingImage ? (
-                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                    <ActivityIndicator
+                      size="large"
+                      color={theme.colors.primary}
+                    />
                   ) : (
                     <>
-                      <Ionicons name="image-outline" size={48} color={theme.colors.textSecondary} />
-                      <Text style={styles.imagePlaceholderText}>Tap to upload image</Text>
-                      <Text style={styles.imagePlaceholderHint}>16:9 aspect ratio recommended</Text>
+                      <Ionicons
+                        name="image-outline"
+                        size={48}
+                        color={theme.colors.textSecondary}
+                      />
+                      <Text style={styles.imagePlaceholderText}>
+                        Tap to upload image
+                      </Text>
+                      <Text style={styles.imagePlaceholderHint}>
+                        16:9 aspect ratio recommended
+                      </Text>
                     </>
                   )}
                 </View>
@@ -183,7 +235,9 @@ export const AdminEventCreateScreen: React.FC = () => {
             <TextInput
               style={styles.input}
               value={formData.subtitle}
-              onChangeText={(text) => setFormData({ ...formData, subtitle: text })}
+              onChangeText={(text) =>
+                setFormData({ ...formData, subtitle: text })
+              }
               placeholder="Event subtitle"
               placeholderTextColor={theme.colors.textTertiary}
             />
@@ -195,7 +249,11 @@ export const AdminEventCreateScreen: React.FC = () => {
               style={styles.dateInput}
               onPress={() => setShowDatePicker(true)}
             >
-              <Ionicons name="calendar-outline" size={20} color={theme.colors.textSecondary} />
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
               <Text style={styles.dateText}>
                 {formData.date.toLocaleString()}
               </Text>
@@ -221,12 +279,57 @@ export const AdminEventCreateScreen: React.FC = () => {
             )}
           </View>
 
+          {/* Type Dropdown Modal */}
+          <Modal
+            visible={showTypeDropdown}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setShowTypeDropdown(false)}
+          >
+            <Pressable
+              style={styles.modalOverlay}
+              onPress={() => setShowTypeDropdown(false)}
+            >
+              <View style={styles.dropdownModal}>
+                <Text style={styles.modalTitle}>Select Event Type</Text>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {EVENT_TYPES.map((eventType) => (
+                    <TouchableOpacity
+                      key={eventType.value}
+                      style={[
+                        styles.dropdownOption,
+                        formData.type === eventType.value && styles.dropdownOptionSelected
+                      ]}
+                      onPress={() => handleTypeSelect(eventType.value)}
+                    >
+                      <Text style={[
+                        styles.dropdownOptionText,
+                        formData.type === eventType.value && styles.dropdownOptionTextSelected
+                      ]}>
+                        {eventType.label}
+                      </Text>
+                      {formData.type === eventType.value && (
+                        <Ionicons
+                          name="checkmark"
+                          size={20}
+                          color={theme.colors.primary}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </Pressable>
+          </Modal>
+
           <View style={styles.formGroup}>
             <Text style={styles.label}>Location *</Text>
             <TextInput
               style={styles.input}
               value={formData.location}
-              onChangeText={(text) => setFormData({ ...formData, location: text })}
+              onChangeText={(text) =>
+                setFormData({ ...formData, location: text })
+              }
               placeholder="Event location"
               placeholderTextColor={theme.colors.textTertiary}
             />
@@ -244,21 +347,30 @@ export const AdminEventCreateScreen: React.FC = () => {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Type</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.type}
-              onChangeText={(text) => setFormData({ ...formData, type: text })}
-              placeholder="COCTEL_INTIMO"
-              placeholderTextColor={theme.colors.textTertiary}
-            />
+            <Text style={styles.label}>Type *</Text>
+            <TouchableOpacity
+              style={styles.dropdownInput}
+              onPress={() => setShowTypeDropdown(true)}
+            >
+              <Text style={[
+                styles.dropdownText,
+                !formData.type && { color: theme.colors.textTertiary }
+              ]}>
+                {getSelectedTypeLabel()}
+              </Text>
+              <Ionicons
+                name="chevron-down"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>Price</Text>
             <TextInput
               style={styles.input}
-              value={formData.price?.toString() || ''}
+              value={formData.price?.toString() || ""}
               onChangeText={(text) =>
                 setFormData({
                   ...formData,
@@ -275,7 +387,7 @@ export const AdminEventCreateScreen: React.FC = () => {
             <Text style={styles.label}>Capacity *</Text>
             <TextInput
               style={styles.input}
-              value={formData.capacity?.toString() || ''}
+              value={formData.capacity?.toString() || ""}
               onChangeText={(text) =>
                 setFormData({
                   ...formData,
@@ -288,8 +400,26 @@ export const AdminEventCreateScreen: React.FC = () => {
             />
           </View>
 
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+              style={[styles.input, { height: 100, textAlignVertical: "top" }]}
+              value={formData.description}
+              onChangeText={(text) =>
+                setFormData({ ...formData, description: text })
+              }
+              placeholder="Event description"
+              placeholderTextColor={theme.colors.textTertiary}
+              multiline
+              numberOfLines={4}
+            />
+          </View>
+
           <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            style={[
+              styles.submitButton,
+              loading && styles.submitButtonDisabled,
+            ]}
             onPress={handleSubmit}
             disabled={loading}
           >
@@ -312,9 +442,9 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
       backgroundColor: theme.colors.background,
     },
     header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       paddingTop: topInset + 16,
       paddingHorizontal: theme.spacing.md,
       paddingBottom: theme.spacing.lg,
@@ -325,8 +455,8 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
     backButton: {
       width: 40,
       height: 40,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
     headerTitle: {
       ...theme.typography.sectionTitle,
@@ -345,25 +475,25 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
       marginBottom: theme.spacing.xl,
     },
     imageUploadContainer: {
-      width: '100%',
+      width: "100%",
       aspectRatio: 16 / 9,
       borderRadius: theme.borderRadius.lg,
-      overflow: 'hidden',
+      overflow: "hidden",
       backgroundColor: theme.colors.surface,
       borderWidth: 2,
       borderColor: theme.colors.border,
-      borderStyle: 'dashed',
+      borderStyle: "dashed",
     },
     eventImage: {
-      width: '100%',
-      height: '100%',
-      resizeMode: 'cover',
+      width: "100%",
+      height: "100%",
+      resizeMode: "cover",
     },
     imageOverlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-      alignItems: 'center',
-      justifyContent: 'center',
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+      alignItems: "center",
+      justifyContent: "center",
       opacity: 0,
     },
     imageOverlayText: {
@@ -373,21 +503,21 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
     },
     imagePlaceholder: {
       flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
       padding: theme.spacing.xl,
     },
     imagePlaceholderText: {
       ...theme.typography.body,
       color: theme.colors.textSecondary,
       marginTop: theme.spacing.md,
-      textAlign: 'center',
+      textAlign: "center",
     },
     imagePlaceholderHint: {
       ...theme.typography.caption,
       color: theme.colors.textTertiary,
       marginTop: theme.spacing.xs,
-      textAlign: 'center',
+      textAlign: "center",
     },
     formGroup: {
       marginBottom: theme.spacing.lg,
@@ -397,7 +527,7 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
       color: theme.colors.text,
       marginBottom: theme.spacing.sm,
       fontSize: 15,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     input: {
       backgroundColor: theme.colors.surface,
@@ -415,8 +545,8 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
       borderColor: theme.colors.border,
       borderRadius: theme.borderRadius.md,
       padding: theme.spacing.md + 2,
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: theme.spacing.sm,
     },
     dateText: {
@@ -439,9 +569,68 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
     submitButtonText: {
       ...theme.typography.label,
       color: theme.colors.pureBlack,
-      textAlign: 'center',
-      fontWeight: '600',
+      textAlign: "center",
+      fontWeight: "600",
       fontSize: 16,
     },
+    dropdownInput: {
+      backgroundColor: theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: theme.borderRadius.md,
+      padding: theme.spacing.md + 2,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    dropdownText: {
+      ...theme.typography.body,
+      color: theme.colors.text,
+      fontSize: 15,
+      flex: 1,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: theme.spacing.lg,
+    },
+    dropdownModal: {
+      backgroundColor: theme.colors.background,
+      borderRadius: theme.borderRadius.lg,
+      padding: theme.spacing.lg,
+      width: "100%",
+      maxWidth: 400,
+      maxHeight: "70%",
+      ...theme.shadows.lg,
+    },
+    modalTitle: {
+      ...theme.typography.sectionTitle,
+      color: theme.colors.text,
+      fontSize: 18,
+      marginBottom: theme.spacing.lg,
+      textAlign: "center",
+    },
+    dropdownOption: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: theme.spacing.md,
+      borderRadius: theme.borderRadius.md,
+      marginBottom: theme.spacing.xs,
+    },
+    dropdownOptionSelected: {
+      backgroundColor: theme.colors.primary + "20", // 20% opacity
+    },
+    dropdownOptionText: {
+      ...theme.typography.body,
+      color: theme.colors.text,
+      fontSize: 15,
+      flex: 1,
+    },
+    dropdownOptionTextSelected: {
+      color: theme.colors.primary,
+      fontWeight: "600",
+    },
   });
-

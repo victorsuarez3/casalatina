@@ -8,10 +8,14 @@ import { ApplicationFormScreen, ApplicationFormData } from './Auth/ApplicationFo
 import { useAuth } from '../providers/AuthProvider';
 import { validateMembershipApplication } from '../utils/validation';
 import { showAlert } from '../utils/alert';
+import { useRoute } from '@react-navigation/native';
+import { getUserByInviteCode } from '../services/firebase/users';
 
 export const ApplicationStartScreen: React.FC = () => {
   const { updateUser, userDoc } = useAuth();
   const [loading, setLoading] = useState(false);
+  const route = useRoute();
+  const inviteCode = (route.params as any)?.inviteCode;
 
   // Reset loading if membershipStatus changes (user was redirected)
   React.useEffect(() => {
@@ -57,7 +61,7 @@ export const ApplicationStartScreen: React.FC = () => {
 
       // Update user document with application data
       try {
-        await updateUser({
+        const updateData: any = {
           positionTitle: formData.position,
           company: formData.company,
           industry: formData.industry,
@@ -69,7 +73,20 @@ export const ApplicationStartScreen: React.FC = () => {
           instagramHandle: instagramHandleValue,
           heardAboutUs: formData.referralSource || undefined,
           membershipStatus: 'pending',
-        });
+        };
+
+        // Process invite code if provided
+        if (inviteCode) {
+          const inviter = await getUserByInviteCode(inviteCode);
+          if (inviter) {
+            updateData.invitedBy = inviter.id;
+            updateData.invitedAt = new Date().toISOString();
+            // Update referral source to show it was via invitation
+            updateData.heardAboutUs = `Invited by ${inviter.fullName || 'Casa Latina member'}`;
+          }
+        }
+
+        await updateUser(updateData);
         
         clearTimeout(timeoutId);
         setLoading(false);
