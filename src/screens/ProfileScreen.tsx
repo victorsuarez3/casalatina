@@ -14,7 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../providers/AuthProvider';
 import { useUserEvents } from '../hooks/useUserEvents';
 import { EventCard } from '../components/EventCard';
 import { ProfileDetailsSection } from '../components/ProfileDetailsSection';
@@ -27,7 +27,7 @@ type TabType = typeof tabs[number];
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { userDoc } = useAuth();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabType>('upcoming');
   const { upcomingEvents, pastEvents, loading } = useUserEvents();
@@ -96,13 +96,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
+              {userDoc?.fullName?.charAt(0).toUpperCase() || 'U'}
             </Text>
           </View>
         </View>
         
-        <Text style={styles.name}>{user?.name || 'Guest'}</Text>
-        <Text style={styles.tagline}>{user?.city || 'Miami'}</Text>
+        <Text style={styles.name}>{userDoc?.fullName || 'Guest'}</Text>
+        <Text style={styles.tagline}>{userDoc?.city || 'Miami'}</Text>
         
         <TouchableOpacity
           style={styles.settingsButton}

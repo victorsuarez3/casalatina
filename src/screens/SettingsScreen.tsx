@@ -17,7 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../providers/AuthProvider';
 import { SettingsScreenProps } from '../navigation/types';
 
 interface SettingsItem {
@@ -31,7 +31,7 @@ interface SettingsItem {
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, insets.top, insets.bottom);
   
@@ -58,7 +58,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   const handleLogout = async () => {
     setShowLogoutModal(false);
     try {
-      await signOut();
+      await logout();
       // Navigation will be handled by App.tsx auth state
     } catch (error) {
       console.error('Logout error:', error);
@@ -70,7 +70,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
     // TODO: Implement delete account logic
     console.log('Delete account');
     // For now, just sign out
-    await signOut();
+    await logout();
   };
 
   const settingsItems: SettingsItem[] = [

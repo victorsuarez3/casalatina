@@ -35,6 +35,8 @@ export interface UserDoc {
   annualIncomeRange?: string;
   age?: number;
   heardAboutUs?: string;
+  // Invite code for referring new members
+  inviteCode?: string;
 }
 
 export interface ApplicationDoc {

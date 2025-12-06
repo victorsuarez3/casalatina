@@ -20,17 +20,17 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '../hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../providers/AuthProvider';
 import { t } from '../i18n';
 
 export const InviteScreen: React.FC = () => {
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { userDoc } = useAuth();
   const insets = useSafeAreaInsets();
   const [copied, setCopied] = useState(false);
   const styles = createStyles(theme, insets.top, insets.bottom);
 
-  const inviteCode = user?.inviteCode || 'CL-0000';
+  const inviteCode = userDoc?.inviteCode || 'CL-0000';
   const inviteLink = `https://casalatina.app/invite/${inviteCode}`;
 
   const handleCopyCode = async () => {
