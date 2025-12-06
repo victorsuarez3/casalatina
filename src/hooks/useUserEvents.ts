@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { getUserRsvps } from '../services/firebase/rsvps';
 import { getEventById } from '../services/firebase/events';
 import { Event, RsvpStatus } from '../services/firebase/types';
-import { useAuth } from './useAuth';
+import { useAuth } from '../providers/AuthProvider';
 
 export const useUserEvents = () => {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
@@ -24,7 +24,7 @@ export const useUserEvents = () => {
 
       setLoading(true);
       try {
-        const rsvps = await getUserRsvps(user.id);
+        const rsvps = await getUserRsvps(user.uid);
         
         const upcoming: Event[] = [];
         const past: Event[] = [];
