@@ -37,6 +37,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showFaqModal, setShowFaqModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   // Subscription data based on current date
   const today = new Date();
@@ -82,19 +85,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
       id: 'faq',
       icon: 'help-circle-outline',
       label: 'FAQ',
-      onPress: () => console.log('FAQ pressed'),
+      onPress: () => setShowFaqModal(true),
     },
     {
       id: 'terms',
       icon: 'document-text-outline',
       label: 'Terms and Conditions',
-      onPress: () => console.log('Terms pressed'),
+      onPress: () => setShowTermsModal(true),
     },
     {
       id: 'privacy',
       icon: 'shield-checkmark-outline',
       label: 'Privacy Policy',
-      onPress: () => console.log('Privacy pressed'),
+      onPress: () => setShowPrivacyModal(true),
     },
     {
       id: 'logout',
@@ -292,6 +295,197 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
                 <Text style={styles.modalButtonDeleteText}>Delete</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* FAQ Modal */}
+      <Modal
+        visible={showFaqModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowFaqModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.infoModalContent}>
+            <View style={styles.infoModalHeader}>
+              <Ionicons name="help-circle" size={32} color={theme.colors.primary} />
+              <Text style={styles.infoModalTitle}>Frequently Asked Questions</Text>
+            </View>
+            <ScrollView style={styles.infoModalScroll} showsVerticalScrollIndicator={false}>
+              <Text style={styles.faqQuestion}>What is Casa Latina?</Text>
+              <Text style={styles.faqAnswer}>
+                Casa Latina is an exclusive members-only social club for ambitious Latinos in Miami. We curate premium experiences including private dinners, yacht gatherings, art soirées, and networking events.
+              </Text>
+
+              <Text style={styles.faqQuestion}>How do I become a member?</Text>
+              <Text style={styles.faqAnswer}>
+                Membership is by application only. We review each application to ensure our community maintains its high standards and curated experience.
+              </Text>
+
+              <Text style={styles.faqQuestion}>What's included in my membership?</Text>
+              <Text style={styles.faqAnswer}>
+                As a Founding Member, you get access to all Casa Latina events, priority reservations, exclusive member pricing, and the ability to invite guests to select experiences.
+              </Text>
+
+              <Text style={styles.faqQuestion}>How do I RSVP to events?</Text>
+              <Text style={styles.faqAnswer}>
+                Simply browse our curated events in the Home tab and tap "Reserve spot" on any event you'd like to attend. Spots are limited and available on a first-come basis.
+              </Text>
+
+              <Text style={styles.faqQuestion}>Can I bring guests?</Text>
+              <Text style={styles.faqAnswer}>
+                Select events allow members to bring one guest. Check each event's details for guest policies. Guests must meet Casa Latina's standards.
+              </Text>
+
+              <Text style={styles.faqQuestion}>How do I contact support?</Text>
+              <Text style={styles.faqAnswer}>
+                Email us at hello@casalatina.club or reach out via Instagram @casalatina.club. We typically respond within 24 hours.
+              </Text>
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.infoModalButton}
+              onPress={() => setShowFaqModal(false)}
+            >
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.primaryDark]}
+                style={styles.modalButtonGradient}
+              >
+                <Text style={styles.modalButtonConfirmText}>Got it</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Terms and Conditions Modal */}
+      <Modal
+        visible={showTermsModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowTermsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.infoModalContent}>
+            <View style={styles.infoModalHeader}>
+              <Ionicons name="document-text" size={32} color={theme.colors.primary} />
+              <Text style={styles.infoModalTitle}>Terms and Conditions</Text>
+            </View>
+            <ScrollView style={styles.infoModalScroll} showsVerticalScrollIndicator={false}>
+              <Text style={styles.legalSection}>1. Membership Agreement</Text>
+              <Text style={styles.legalText}>
+                By using Casa Latina, you agree to these terms. Membership is personal and non-transferable. You must be 21 years or older to join.
+              </Text>
+
+              <Text style={styles.legalSection}>2. Code of Conduct</Text>
+              <Text style={styles.legalText}>
+                Members are expected to conduct themselves professionally at all events. Harassment, discrimination, or inappropriate behavior will result in immediate membership revocation without refund.
+              </Text>
+
+              <Text style={styles.legalSection}>3. Event Reservations</Text>
+              <Text style={styles.legalText}>
+                Reservations are confirmed on a first-come, first-served basis. Cancellations must be made at least 24 hours before the event. No-shows may result in restrictions on future reservations.
+              </Text>
+
+              <Text style={styles.legalSection}>4. Membership Fees</Text>
+              <Text style={styles.legalText}>
+                Membership fees are billed annually and are non-refundable. Founding Member pricing is locked for the lifetime of continuous membership.
+              </Text>
+
+              <Text style={styles.legalSection}>5. Intellectual Property</Text>
+              <Text style={styles.legalText}>
+                All content, branding, and materials within the Casa Latina app are proprietary. Photography at events may be used for promotional purposes.
+              </Text>
+
+              <Text style={styles.legalSection}>6. Liability</Text>
+              <Text style={styles.legalText}>
+                Casa Latina is not liable for any injuries, damages, or losses incurred during events. Members participate at their own risk.
+              </Text>
+
+              <Text style={styles.legalSection}>7. Modifications</Text>
+              <Text style={styles.legalText}>
+                We reserve the right to modify these terms at any time. Continued use of the service constitutes acceptance of updated terms.
+              </Text>
+
+              <Text style={styles.legalUpdated}>Last updated: December 2024</Text>
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.infoModalButton}
+              onPress={() => setShowTermsModal(false)}
+            >
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.primaryDark]}
+                style={styles.modalButtonGradient}
+              >
+                <Text style={styles.modalButtonConfirmText}>Close</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Privacy Policy Modal */}
+      <Modal
+        visible={showPrivacyModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPrivacyModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.infoModalContent}>
+            <View style={styles.infoModalHeader}>
+              <Ionicons name="shield-checkmark" size={32} color={theme.colors.primary} />
+              <Text style={styles.infoModalTitle}>Privacy Policy</Text>
+            </View>
+            <ScrollView style={styles.infoModalScroll} showsVerticalScrollIndicator={false}>
+              <Text style={styles.legalSection}>Information We Collect</Text>
+              <Text style={styles.legalText}>
+                We collect information you provide during registration including your name, email, profession, company, city, and Instagram handle. This helps us curate a quality community.
+              </Text>
+
+              <Text style={styles.legalSection}>How We Use Your Data</Text>
+              <Text style={styles.legalText}>
+                Your information is used to verify membership applications, personalize your experience, send event notifications, and improve our services. We never sell your personal data.
+              </Text>
+
+              <Text style={styles.legalSection}>Data Security</Text>
+              <Text style={styles.legalText}>
+                We use industry-standard encryption and security measures to protect your data. Your information is stored securely on Firebase's infrastructure.
+              </Text>
+
+              <Text style={styles.legalSection}>Member Directory</Text>
+              <Text style={styles.legalText}>
+                Your name, profession, and city may be visible to other members at events. Your email and contact information remain private unless you choose to share.
+              </Text>
+
+              <Text style={styles.legalSection}>Third-Party Services</Text>
+              <Text style={styles.legalText}>
+                We use Firebase for authentication and data storage, and Stripe for payment processing. These services have their own privacy policies.
+              </Text>
+
+              <Text style={styles.legalSection}>Your Rights</Text>
+              <Text style={styles.legalText}>
+                You can request to view, update, or delete your personal data at any time by contacting us at privacy@casalatina.club.
+              </Text>
+
+              <Text style={styles.legalSection}>Contact</Text>
+              <Text style={styles.legalText}>
+                For privacy inquiries, email privacy@casalatina.club. We respond to all requests within 30 days.
+              </Text>
+
+              <Text style={styles.legalUpdated}>Last updated: December 2024</Text>
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.infoModalButton}
+              onPress={() => setShowPrivacyModal(false)}
+            >
+              <LinearGradient
+                colors={[theme.colors.primary, theme.colors.primaryDark]}
+                style={styles.modalButtonGradient}
+              >
+                <Text style={styles.modalButtonConfirmText}>Close</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -544,6 +738,71 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
       color: '#FFFFFF',
       textAlign: 'center',
       fontSize: 15,
+    },
+    // Info Modal Styles (FAQ, Terms, Privacy)
+    infoModalContent: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.xl,
+      padding: theme.spacing.xl,
+      width: '92%',
+      maxHeight: '80%',
+      borderWidth: 1,
+      borderColor: theme.colors.primary + '30',
+      ...theme.shadows.lg,
+    },
+    infoModalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: theme.spacing.lg,
+      gap: theme.spacing.md,
+    },
+    infoModalTitle: {
+      ...theme.typography.sectionTitle,
+      color: theme.colors.text,
+      fontSize: 22,
+      flex: 1,
+    },
+    infoModalScroll: {
+      maxHeight: 400,
+      marginBottom: theme.spacing.lg,
+    },
+    infoModalButton: {
+      borderRadius: theme.borderRadius.md,
+      overflow: 'hidden',
+    },
+    faqQuestion: {
+      ...theme.typography.subsectionTitle,
+      color: theme.colors.softCream,
+      fontSize: 15,
+      marginTop: theme.spacing.lg,
+      marginBottom: theme.spacing.xs,
+    },
+    faqAnswer: {
+      ...theme.typography.body,
+      color: theme.colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 22,
+    },
+    legalSection: {
+      ...theme.typography.subsectionTitle,
+      color: theme.colors.softCream,
+      fontSize: 15,
+      marginTop: theme.spacing.lg,
+      marginBottom: theme.spacing.xs,
+    },
+    legalText: {
+      ...theme.typography.body,
+      color: theme.colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 22,
+    },
+    legalUpdated: {
+      ...theme.typography.caption,
+      color: theme.colors.textTertiary,
+      fontSize: 12,
+      marginTop: theme.spacing.xl,
+      textAlign: 'center',
+      fontStyle: 'italic',
     },
   });
 
