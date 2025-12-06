@@ -10,7 +10,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +24,7 @@ import { ProfileScreenProps } from '../navigation/types';
 import { t } from '../i18n';
 import { showcaseEvents } from '../data/mockEvents';
 import { uploadProfilePhoto } from '../services/storageService';
+import { showAlert } from '../utils/alert';
 
 const FEATURED_RSVPS_KEY = '@casa_latina_featured_rsvps';
 
@@ -43,23 +43,24 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   // Handle profile photo upload
   const handleImageSelected = useCallback(async (uri: string) => {
     if (!user?.uid) {
-      Alert.alert('Error', 'You must be logged in to change your profile photo');
+      showAlert('Error', 'You must be logged in to change your profile photo', 'error');
       return;
     }
 
     try {
-      // Upload to Firebase Storage
-      const downloadUrl = await uploadProfilePhoto(user.uid, uri);
-      
+      // Upload to Firebase Storage (and delete old photo if it exists)
+      const oldPhotoUrl = userDoc?.photoUrl;
+      const downloadUrl = await uploadProfilePhoto(user.uid, uri, oldPhotoUrl);
+
       // Update user document with new photo URL
       await updateUser({ photoUrl: downloadUrl });
-      
-      Alert.alert('Success', 'Profile photo updated successfully');
+
+      showAlert('Success', 'Profile photo updated successfully', 'success');
     } catch (error) {
       console.error('Error updating profile photo:', error);
       throw error; // Re-throw to let ProfileAvatar handle the error UI
     }
-  }, [user?.uid, updateUser]);
+  }, [user?.uid, userDoc?.photoUrl, updateUser]);
 
   // Load featured RSVPs from storage
   useEffect(() => {

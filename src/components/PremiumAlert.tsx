@@ -184,7 +184,7 @@ const createStyles = (theme: any, type: 'error' | 'success' | 'info') =>
     title: {
       ...theme.typography.sectionTitle,
       fontSize: 24,
-      color: theme.colors.softCream,
+      color: theme.colors.text,
       textAlign: 'center',
       marginBottom: 12,
       fontFamily: 'CormorantGaramond_600SemiBold',

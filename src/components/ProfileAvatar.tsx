@@ -20,7 +20,6 @@ import {
   Pressable,
   Image,
   ActivityIndicator,
-  Alert,
   Dimensions,
   Platform,
   Animated,
@@ -28,6 +27,7 @@ import {
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { showAlert } from '../utils/alert';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ENLARGED_SIZE = Math.min(SCREEN_WIDTH - 48, 340);
@@ -161,12 +161,12 @@ export const ProfileAvatar = memo(({
     try {
       // Request permissions
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Required',
           'Please allow access to your photo library to change your profile picture.',
-          [{ text: 'OK' }]
+          'info'
         );
         return;
       }
@@ -189,18 +189,18 @@ export const ProfileAvatar = memo(({
           // Show specific error message from StorageError
           const title = getErrorTitle(error?.code);
           const message = error?.message || 'Unable to update your profile picture. Please try again.';
-          
-          Alert.alert(title, message, [{ text: 'OK' }]);
+
+          showAlert(title, message, 'error');
         } finally {
           setIsLoading(false);
         }
       }
     } catch (error) {
       console.error('Image picker error:', error);
-      Alert.alert(
+      showAlert(
         'Error',
         'Could not open photo library. Please try again.',
-        [{ text: 'OK' }]
+        'error'
       );
     }
   }, [editable, onImageSelected]);

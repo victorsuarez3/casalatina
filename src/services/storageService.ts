@@ -5,7 +5,7 @@
  * Primarily used for profile photos and event images
  */
 
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../firebase/config';
 
 // Constants for validation
@@ -89,16 +89,48 @@ function parseStorageError(error: any): StorageError {
 }
 
 /**
+ * Deletes a file from Firebase Storage given its download URL
+ *
+ * @param downloadUrl - The full download URL of the file to delete
+ */
+export async function deleteFileByUrl(downloadUrl: string): Promise<void> {
+  try {
+    // Extract the storage path from the download URL
+    // Format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?alt=media&token={token}
+    const url = new URL(downloadUrl);
+    const pathEncoded = url.pathname.split('/o/')[1]?.split('?')[0];
+
+    if (!pathEncoded) {
+      console.warn('Could not extract path from URL:', downloadUrl);
+      return;
+    }
+
+    const path = decodeURIComponent(pathEncoded);
+    const fileRef = ref(storage, path);
+
+    await deleteObject(fileRef);
+  } catch (error: any) {
+    // Silently fail - don't block upload if old file can't be deleted
+    // File might not exist or permissions might have changed
+    if (error?.code !== 'storage/object-not-found') {
+      console.warn('Could not delete previous photo:', error?.code);
+    }
+  }
+}
+
+/**
  * Uploads a profile photo to Firebase Storage
- * 
+ *
  * @param userId - The user's UID
  * @param uri - Local URI of the image to upload
+ * @param oldPhotoUrl - Optional URL of the previous photo to delete after successful upload
  * @returns Promise with the download URL of the uploaded image
  * @throws StorageError with user-friendly message
  */
 export async function uploadProfilePhoto(
   userId: string,
-  uri: string
+  uri: string,
+  oldPhotoUrl?: string | null
 ): Promise<string> {
   try {
     // Fetch the image as blob
@@ -109,9 +141,9 @@ export async function uploadProfilePhoto(
         'read-error'
       );
     }
-    
+
     const blob = await response.blob();
-    
+
     // Validate file before upload
     validateFile(blob);
 
@@ -131,14 +163,19 @@ export async function uploadProfilePhoto(
 
     // Get the download URL
     const downloadURL = await getDownloadURL(snapshot.ref);
-    
+
+    // Delete old photo AFTER successful upload (best practice)
+    if (oldPhotoUrl) {
+      await deleteFileByUrl(oldPhotoUrl);
+    }
+
     return downloadURL;
   } catch (error) {
     // Re-throw StorageError as-is
     if (error instanceof StorageError) {
       throw error;
     }
-    
+
     // Parse Firebase errors
     console.error('Error uploading profile photo:', error);
     throw parseStorageError(error);

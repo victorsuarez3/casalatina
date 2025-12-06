@@ -12,7 +12,6 @@ import {
   ImageBackground,
   TouchableOpacity,
   Share,
-  Alert,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,6 +21,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../providers/AuthProvider';
 import { t } from '../i18n';
+import { showAlert } from '../utils/alert';
 
 export const InviteScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -39,17 +39,17 @@ export const InviteScreen: React.FC = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      Alert.alert('Error', 'Unable to copy code');
+      showAlert('Error', 'Unable to copy code', 'error');
     }
   };
 
   const handleShare = async (method: 'whatsapp' | 'messages' | 'link') => {
     try {
       const message = `I'm on Casa Latina, a private events club for Latinos. Use my code ${inviteCode} to apply: ${inviteLink}`;
-      
+
       if (method === 'link') {
         await Clipboard.setStringAsync(inviteLink);
-        Alert.alert('', t('invite_copied'));
+        showAlert('Success', t('invite_copied'), 'success');
       } else {
         await Share.share({
           message,
@@ -57,7 +57,7 @@ export const InviteScreen: React.FC = () => {
         });
       }
     } catch (error) {
-      Alert.alert('Error', 'Unable to share');
+      showAlert('Error', 'Unable to share', 'error');
     }
   };
 
