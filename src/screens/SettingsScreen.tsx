@@ -141,9 +141,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={{
-          uri: ASSETS.backgrounds.premiumLounge,
-        }}
+        source={ASSETS.backgrounds.premiumLounge}
         style={styles.backgroundImage}
         resizeMode="cover"
       >

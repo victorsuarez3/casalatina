@@ -276,9 +276,7 @@ export const ApplicationFormScreen: React.FC<ApplicationFormScreenProps> = ({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ImageBackground
-        source={{
-          uri: ASSETS.backgrounds.premiumLounge,
-        }}
+        source={ASSETS.backgrounds.premiumLounge}
         style={styles.backgroundImage}
         resizeMode="cover"
       >

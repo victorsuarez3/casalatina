@@ -72,9 +72,7 @@ export const InviteScreen: React.FC = () => {
       {/* Hero Section - Floating card with blur */}
       <View style={styles.headerWrapper}>
         <ImageBackground
-          source={{
-            uri: ASSETS.backgrounds.premiumLounge,
-          }}
+          source={ASSETS.backgrounds.premiumLounge}
           style={styles.heroImage}
           resizeMode="cover"
         >
