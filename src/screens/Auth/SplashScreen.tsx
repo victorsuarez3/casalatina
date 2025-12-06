@@ -42,7 +42,7 @@ export const SplashScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('../../../assets/backgrounds/party_background.webp')}
+        source={require('../../../assets/backgrounds/official-background.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
