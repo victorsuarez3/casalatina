@@ -103,7 +103,7 @@ export const showcaseEvents: EventData[] = [
     id: 'showcase-4',
     title: 'Design District Fashion & Cocktails',
     subtitle: 'Style meets substance',
-    description: 'An exclusive evening at a private showroom in the Design District. Preview upcoming collections from Latin designers while enjoying craft cocktails and networking with Miami\'s most stylish.',
+    description: 'An exclusive evening at a private showroom in the Design District. Discover the latest collections from Latin designers while enjoying craft cocktails and networking with Miami\'s most stylish.',
     city: 'Miami',
     neighborhood: 'Design District',
     venueName: 'Private Showroom · Design District',

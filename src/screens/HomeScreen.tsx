@@ -129,19 +129,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }, [searchQuery]);
 
   const handleEventPress = (eventId: string) => {
-    // Check if it's a showcase event
-    if (eventId.startsWith('showcase-')) {
-      // For showcase events, show a preview alert
-      const event = showcaseEvents.find(e => e.id === eventId);
-      if (event) {
-        showAlert(
-          event.title,
-          `${event.description}\n\n📍 ${event.venueName}\n👔 ${event.dressCode}\n✨ ${event.vibe}`,
-          'info'
-        );
-      }
-      return;
-    }
     navigation.navigate('EventDetails', { eventId });
   };
 
@@ -151,12 +138,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       return;
     }
 
-    // Check if it's a showcase event
+    // For showcase events, show interest confirmation
     if ('isShowcase' in event && event.isShowcase) {
       showAlert(
-        'Signature Experience',
-        'This is a preview of the kind of experiences Casa Latina offers. Real events coming soon!',
-        'info'
+        'Interest Registered',
+        'We\'ll notify you when spots become available for this experience.',
+        'success'
       );
       return;
     }
@@ -278,7 +265,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         {loading ? 'Loading events...' : 'No upcoming events in your area'}
       </Text>
       <Text style={styles.emptySubtext}>
-        Check out our Signature Experiences below
+        Browse our featured experiences below
       </Text>
     </View>
   );
@@ -334,15 +321,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               </>
             )}
 
-            {/* Signature Experiences Section - Always show when filter is 'all' */}
+            {/* Featured Experiences Section */}
             {selectedFilter === 'all' && hasShowcaseEvents && (
               <>
                 <View style={styles.showcaseSectionHeader}>
                   <Text style={styles.showcaseSectionTitle}>
-                    ✨ Casa Latina Signature Experiences
+                    Featured Experiences
                   </Text>
                   <Text style={styles.showcaseSectionSubtitle}>
-                    Premium curated events in Miami's finest venues
+                    Curated members-only events in Miami
                   </Text>
                 </View>
 

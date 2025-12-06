@@ -180,7 +180,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           <View style={styles.infoRow}>
             {isShowcase && (
               <View style={styles.showcaseBadge}>
-                <Text style={styles.showcaseBadgeText}>✨ Signature</Text>
+                <Text style={styles.showcaseBadgeText}>Featured</Text>
               </View>
             )}
             {membersOnly && !isShowcase && (
