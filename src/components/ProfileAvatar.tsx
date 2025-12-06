@@ -3,14 +3,13 @@
  * 
  * A high-quality, reusable avatar component with:
  * - Long press to view enlarged image (Instagram-style)
- * - Smooth animations using Reanimated
  * - Image picker integration for changing photos
  * - Fallback to initials when no image
  * 
  * @author Casa Latina Engineering
  */
 
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, useRef, memo } from 'react';
 import {
   View,
   Text,
@@ -18,35 +17,20 @@ import {
   Modal,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  Pressable,
   Image,
   ActivityIndicator,
   Alert,
   Dimensions,
   Platform,
+  Animated,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  interpolate,
-  Extrapolate,
-  runOnJS,
-} from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const ENLARGED_SIZE = Math.min(SCREEN_WIDTH - 48, 340);
-
-// Spring configuration for smooth animations
-const SPRING_CONFIG = {
-  damping: 20,
-  stiffness: 300,
-  mass: 0.8,
-};
 
 interface ProfileAvatarProps {
   /** Image URL for the avatar */
@@ -81,10 +65,10 @@ export const ProfileAvatar = memo(({
   const [isLoading, setIsLoading] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  // Animation values
-  const scale = useSharedValue(1);
-  const modalOpacity = useSharedValue(0);
-  const imageScale = useSharedValue(0.8);
+  // Animation values using React Native Animated (more stable in Expo Go)
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const modalOpacity = useRef(new Animated.Value(0)).current;
+  const imageScale = useRef(new Animated.Value(0.8)).current;
 
   // Extract initials from name
   const initials = name
@@ -96,68 +80,79 @@ export const ProfileAvatar = memo(({
 
   const hasValidImage = imageUrl && !imageError;
 
-  // Animated styles for the avatar
-  const avatarAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  // Animated styles for modal backdrop
-  const backdropAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: modalOpacity.value,
-  }));
-
-  // Animated styles for enlarged image
-  const enlargedImageStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: imageScale.value }],
-    opacity: interpolate(
-      imageScale.value,
-      [0.8, 1],
-      [0, 1],
-      Extrapolate.CLAMP
-    ),
-  }));
-
   // Open enlarged view with animation
   const openEnlargedView = useCallback(() => {
     if (!hasValidImage || !enableEnlarge) return;
     
     setIsEnlarged(true);
-    modalOpacity.value = withTiming(1, { duration: 200 });
-    imageScale.value = withSpring(1, SPRING_CONFIG);
+    Animated.parallel([
+      Animated.timing(modalOpacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.spring(imageScale, {
+        toValue: 1,
+        damping: 20,
+        stiffness: 300,
+        mass: 0.8,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, [hasValidImage, enableEnlarge, modalOpacity, imageScale]);
 
   // Close enlarged view with animation
   const closeEnlargedView = useCallback(() => {
-    modalOpacity.value = withTiming(0, { duration: 150 });
-    imageScale.value = withTiming(0.8, { duration: 150 }, () => {
-      runOnJS(setIsEnlarged)(false);
+    Animated.parallel([
+      Animated.timing(modalOpacity, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(imageScale, {
+        toValue: 0.8,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setIsEnlarged(false);
     });
   }, [modalOpacity, imageScale]);
 
-  // Long press gesture for enlarging
-  const longPressGesture = Gesture.LongPress()
-    .minDuration(400)
-    .onStart(() => {
-      scale.value = withSpring(0.95, SPRING_CONFIG);
-    })
-    .onEnd((event, success) => {
-      scale.value = withSpring(1, SPRING_CONFIG);
-      if (success) {
-        runOnJS(openEnlargedView)();
-      }
-    });
+  // Handle long press
+  const handleLongPress = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    
+    openEnlargedView();
+  }, [scaleAnim, openEnlargedView]);
 
-  // Tap gesture for editing
-  const tapGesture = Gesture.Tap()
-    .onStart(() => {
-      scale.value = withSpring(0.96, SPRING_CONFIG);
-    })
-    .onEnd(() => {
-      scale.value = withSpring(1, SPRING_CONFIG);
-    });
+  // Handle press in/out for visual feedback
+  const handlePressIn = useCallback(() => {
+    Animated.timing(scaleAnim, {
+      toValue: 0.96,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  }, [scaleAnim]);
 
-  // Combined gesture
-  const composedGesture = Gesture.Race(longPressGesture, tapGesture);
+  const handlePressOut = useCallback(() => {
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  }, [scaleAnim]);
 
   // Handle image picking
   const handlePickImage = useCallback(async () => {
@@ -231,8 +226,13 @@ export const ProfileAvatar = memo(({
   return (
     <>
       <View style={styles.container}>
-        <GestureDetector gesture={composedGesture}>
-          <Animated.View style={[styles.avatarContainer, avatarAnimatedStyle]}>
+        <Pressable
+          onLongPress={handleLongPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          delayLongPress={400}
+        >
+          <Animated.View style={[styles.avatarContainer, { transform: [{ scale: scaleAnim }] }]}>
             {isLoading ? (
               <View style={styles.avatar}>
                 <ActivityIndicator size="small" color={theme.colors.primary} />
@@ -249,7 +249,7 @@ export const ProfileAvatar = memo(({
               </View>
             )}
           </Animated.View>
-        </GestureDetector>
+        </Pressable>
 
         {/* Edit button overlay */}
         {editable && (
@@ -275,7 +275,7 @@ export const ProfileAvatar = memo(({
       >
         <TouchableWithoutFeedback onPress={closeEnlargedView}>
           <View style={styles.modalContainer}>
-            <Animated.View style={[StyleSheet.absoluteFill, backdropAnimatedStyle]}>
+            <Animated.View style={[StyleSheet.absoluteFill, { opacity: modalOpacity }]}>
               <BlurView
                 intensity={Platform.OS === 'ios' ? 80 : 120}
                 tint="dark"
@@ -285,7 +285,18 @@ export const ProfileAvatar = memo(({
             </Animated.View>
 
             <TouchableWithoutFeedback>
-              <Animated.View style={[styles.enlargedContainer, enlargedImageStyle]}>
+              <Animated.View 
+                style={[
+                  styles.enlargedContainer, 
+                  { 
+                    transform: [{ scale: imageScale }],
+                    opacity: imageScale.interpolate({
+                      inputRange: [0.8, 1],
+                      outputRange: [0, 1],
+                    }),
+                  }
+                ]}
+              >
                 {/* User name above image */}
                 <Text style={styles.enlargedName}>{name}</Text>
                 
