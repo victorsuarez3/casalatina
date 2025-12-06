@@ -297,8 +297,8 @@ const createStyles = (theme: any) => StyleSheet.create({
   title: {
     ...theme.typography.subsectionTitle,
     color: theme.colors.text,
-    fontSize: 22,
-    lineHeight: 30,
+    fontSize: 24,
+    lineHeight: 32,
     textShadowColor: 'rgba(0, 0, 0, 0.65)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
