@@ -33,7 +33,7 @@ interface SettingsItem {
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, userDoc, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, insets.top, insets.bottom);
   
@@ -96,6 +96,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
   };
 
   const settingsItems: SettingsItem[] = [
+    // Admin Panel - only visible to admins
+    ...(userDoc?.role === 'admin' ? [{
+      id: 'admin',
+      icon: 'settings-outline' as keyof typeof Ionicons.glyphMap,
+      label: 'Admin Panel',
+      onPress: () => navigation.navigate('AdminIndex'),
+    }] : []),
     {
       id: 'faq',
       icon: 'help-circle-outline',
