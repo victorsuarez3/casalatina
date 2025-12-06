@@ -1,6 +1,7 @@
 /**
  * useEvent Hook
  * Real-time subscription to a single event with local caching
+ * Supports both Firestore events and local featured events
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -8,6 +9,7 @@ import { subscribeToEvent } from '../services/events';
 import { EventDoc } from '../models/firestore';
 import { getEventStatus, isUserAttending } from '../utils/eventStatus';
 import { useAuth } from '../providers/AuthProvider';
+import { showcaseEvents } from '../data/mockEvents';
 
 export interface UseEventReturn {
   event: EventDoc | null;
@@ -20,8 +22,43 @@ export interface UseEventReturn {
 }
 
 /**
+ * Convert showcase event to EventDoc format
+ */
+const convertShowcaseToEventDoc = (showcaseEvent: typeof showcaseEvents[0]): EventDoc => {
+  // Parse date string to create a future date
+  const now = new Date();
+  const eventDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+  
+  return {
+    id: showcaseEvent.id,
+    title: showcaseEvent.title,
+    subtitle: showcaseEvent.subtitle,
+    image: showcaseEvent.imageUrl,
+    date: eventDate,
+    location: showcaseEvent.neighborhood,
+    price: 0,
+    capacity: showcaseEvent.capacity,
+    attendees: [], // Featured events start with no attendees for the user
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    city: showcaseEvent.city,
+    type: showcaseEvent.type,
+    membersOnly: showcaseEvent.isMembersOnly,
+    coverImageUrl: showcaseEvent.imageUrl,
+    description: showcaseEvent.description,
+    isShowcase: true,
+    neighborhood: showcaseEvent.neighborhood,
+    venueName: showcaseEvent.venueName,
+    dressCode: showcaseEvent.dressCode,
+    vibe: showcaseEvent.vibe,
+    priceRange: showcaseEvent.priceRange,
+  };
+};
+
+/**
  * Hook to subscribe to a single event in real-time
  * Includes local caching for instant display
+ * Supports featured events from local data
  */
 export const useEvent = (eventId: string | null): UseEventReturn => {
   const { user } = useAuth();
@@ -42,7 +79,23 @@ export const useEvent = (eventId: string | null): UseEventReturn => {
     setLoading(true);
     setError(null);
 
-    // Subscribe to real-time updates
+    // Check if this is a featured/showcase event
+    if (eventId.startsWith('showcase-')) {
+      const showcaseEvent = showcaseEvents.find(e => e.id === eventId);
+      if (showcaseEvent) {
+        const eventDoc = convertShowcaseToEventDoc(showcaseEvent);
+        cacheRef.current = eventDoc;
+        setEvent(eventDoc);
+        setLoading(false);
+      } else {
+        setEvent(null);
+        setLoading(false);
+        setError(new Error('Event not found'));
+      }
+      return;
+    }
+
+    // Subscribe to real-time updates for Firestore events
     const unsubscribe = subscribeToEvent(
       eventId,
       (firestoreEvent) => {
@@ -85,4 +138,3 @@ export const useEvent = (eventId: string | null): UseEventReturn => {
     error,
   };
 };
-

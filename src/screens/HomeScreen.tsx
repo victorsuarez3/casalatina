@@ -138,16 +138,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       return;
     }
 
-    // For showcase events, show interest confirmation
-    if ('isShowcase' in event && event.isShowcase) {
-      showAlert(
-        'Interest Registered',
-        'We\'ll notify you when spots become available for this experience.',
-        'success'
-      );
-      return;
-    }
-
     const eventWithStatus = event as EventWithStatus;
 
     try {

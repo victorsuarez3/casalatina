@@ -115,6 +115,12 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
       return;
     }
 
+    // For featured events, show success without Firestore write
+    if (event.isShowcase || event.id.startsWith('showcase-')) {
+      showAlert('Reservation Confirmed', 'You have successfully reserved a spot for this experience.', 'success');
+      return;
+    }
+
     try {
       if (isAttending) {
         // Cancel reservation
