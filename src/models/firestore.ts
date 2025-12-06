@@ -69,6 +69,13 @@ export interface EventDoc {
   attendees: string[]; // Array of user UIDs
   createdAt: any; // Firestore Timestamp
   updatedAt: any; // Firestore Timestamp
+  // Showcase/Signature events (seed data)
+  isShowcase?: boolean;
+  neighborhood?: string; // Brickell, Wynwood, etc.
+  venueName?: string;
+  dressCode?: string;
+  vibe?: string;
+  priceRange?: string; // $, $$, $$$
   // Legacy fields for backward compatibility
   city?: string;
   type?: string;

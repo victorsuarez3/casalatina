@@ -31,6 +31,12 @@ export interface Event {
   organizerId?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Showcase/Signature experience fields
+  isShowcase?: boolean;
+  vibe?: string;
+  dressCode?: string;
+  venueName?: string;
+  priceRange?: string;
 }
 
 export interface User {

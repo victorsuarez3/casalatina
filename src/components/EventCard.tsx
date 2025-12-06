@@ -22,6 +22,8 @@ interface EventCardProps extends Event {
   rsvpStatus?: 'going' | 'waitlist' | 'went' | null;
   onPress?: () => void;
   onRsvpPress?: () => void;
+  isShowcase?: boolean;
+  vibe?: string;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -47,6 +49,8 @@ export const EventCard: React.FC<EventCardProps> = ({
   rsvpStatus,
   onPress,
   onRsvpPress,
+  isShowcase,
+  vibe,
 }) => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -174,7 +178,12 @@ export const EventCard: React.FC<EventCardProps> = ({
 
           {/* Info Row - Premium spacing */}
           <View style={styles.infoRow}>
-            {membersOnly && (
+            {isShowcase && (
+              <View style={styles.showcaseBadge}>
+                <Text style={styles.showcaseBadgeText}>✨ Signature</Text>
+              </View>
+            )}
+            {membersOnly && !isShowcase && (
               <View style={styles.membersOnlyBadge}>
                 <Text style={styles.membersOnlyText}>{t('event_members_only')}</Text>
               </View>
@@ -187,6 +196,11 @@ export const EventCard: React.FC<EventCardProps> = ({
               <Text style={styles.spotsText}>{t('event_full')}</Text>
             )}
           </View>
+
+          {/* Vibe text for showcase events */}
+          {isShowcase && vibe && (
+            <Text style={styles.vibeText}>{vibe}</Text>
+          )}
 
           {/* Member Avatars - Cleaner with more contrast */}
           {attendingCount > 0 && (
@@ -325,6 +339,27 @@ const createStyles = (theme: any) => StyleSheet.create({
     color: theme.colors.premiumGold || '#D4AF37', // Bright metallic gold text
     fontSize: 11,
     fontWeight: '600',
+  },
+  showcaseBadge: {
+    backgroundColor: 'rgba(213, 196, 161, 0.15)', // Soft cream background
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.softCream + '40',
+  },
+  showcaseBadgeText: {
+    fontFamily: 'Inter_600SemiBold',
+    color: theme.colors.softCream,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  vibeText: {
+    fontFamily: 'Inter_400Regular',
+    color: theme.colors.textSecondary,
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginBottom: theme.spacing.sm,
   },
   spotsText: {
     ...theme.typography.bodySmall,

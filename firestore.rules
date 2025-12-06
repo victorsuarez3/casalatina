@@ -93,6 +93,25 @@ service cloud.firestore {
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // RSVPS COLLECTION
+    // ═══════════════════════════════════════════════════════════════
+    match /rsvps/{rsvpId} {
+      // Approved members can read RSVPs
+      allow read: if isApprovedMember() || isAdmin();
+      
+      // Approved members can create RSVPs for themselves
+      allow create: if isApprovedMember()
+        && request.resource.data.userId == request.auth.uid;
+      
+      // Users can update/delete their own RSVPs
+      allow update, delete: if isApprovedMember()
+        && resource.data.userId == request.auth.uid;
+      
+      // Admins can manage all RSVPs
+      allow read, write: if isAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // DEBUG COLLECTION (for testing - remove in production)
     // ═══════════════════════════════════════════════════════════════
     match /debug/{docId} {

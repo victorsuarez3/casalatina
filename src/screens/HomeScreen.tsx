@@ -1,6 +1,6 @@
 /**
  * Home Screen - Casa Latina Premium MVP
- * Premium events feed with Firebase integration
+ * Premium events feed with Firebase integration and Signature Experiences
  */
 
 import React, { useState, useMemo } from 'react';
@@ -9,6 +9,7 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  SectionList,
 } from 'react-native';
 import { Timestamp } from 'firebase/firestore';
 import { useTheme } from '../hooks/useTheme';
@@ -20,11 +21,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeScreenProps } from '../navigation/types';
 import { useEventsWithRsvp, EventWithStatus } from '../hooks/useEvents';
 import { useAuth } from '../providers/AuthProvider';
-import { reserveEvent, cancelReservation, CancelReservationResult } from '../services/events';
+import { reserveEvent, cancelReservation } from '../services/events';
 import { showAlert } from '../utils/alert';
 import { sortUpcoming, filterGoing, filterWent } from '../utils/events';
 import { getEventStatus, isEventPast, isUserAttending } from '../utils/eventStatus';
 import { EventDoc } from '../models/firestore';
+import { showcaseEvents, EventData } from '../data/mockEvents';
 import { t } from '../i18n';
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
@@ -38,7 +40,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { events, loading } = useEventsWithRsvp(city);
   const styles = createStyles(theme, insets.bottom);
 
-  // Filter events based on RSVP status and search
+  // Filter real events based on RSVP status and search
   const filteredEvents = useMemo(() => {
     // Convert EventWithStatus[] to EventDoc[] for utility functions
     const eventDocs: EventDoc[] = events.map((e) => ({
@@ -111,35 +113,73 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return filtered;
   }, [events, selectedFilter, searchQuery, user?.uid]);
 
+  // Filter showcase events based on search
+  const filteredShowcaseEvents = useMemo(() => {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      return showcaseEvents.filter(
+        (event) =>
+          event.title.toLowerCase().includes(query) ||
+          event.neighborhood.toLowerCase().includes(query) ||
+          event.city.toLowerCase().includes(query) ||
+          (event.venueName && event.venueName.toLowerCase().includes(query))
+      );
+    }
+    return showcaseEvents;
+  }, [searchQuery]);
+
   const handleEventPress = (eventId: string) => {
+    // Check if it's a showcase event
+    if (eventId.startsWith('showcase-')) {
+      // For showcase events, show a preview alert
+      const event = showcaseEvents.find(e => e.id === eventId);
+      if (event) {
+        showAlert(
+          event.title,
+          `${event.description}\n\n📍 ${event.venueName}\n👔 ${event.dressCode}\n✨ ${event.vibe}`,
+          'info'
+        );
+      }
+      return;
+    }
     navigation.navigate('EventDetails', { eventId });
   };
 
-  const handleRsvpPress = async (event: EventWithStatus) => {
+  const handleRsvpPress = async (event: EventWithStatus | EventData) => {
     if (!user) {
       showAlert('Sign In Required', 'Please sign in to reserve a spot', 'info');
       return;
     }
 
+    // Check if it's a showcase event
+    if ('isShowcase' in event && event.isShowcase) {
+      showAlert(
+        'Signature Experience',
+        'This is a preview of the kind of experiences Casa Latina offers. Real events coming soon!',
+        'info'
+      );
+      return;
+    }
+
+    const eventWithStatus = event as EventWithStatus;
+
     try {
-      if (event.eventStatus === 'attending') {
+      if (eventWithStatus.eventStatus === 'attending') {
         // Cancel reservation
-        const result = await cancelReservation(event.id, user.uid);
+        const result = await cancelReservation(eventWithStatus.id, user.uid);
         if (result === 'canceled') {
-          // Event will update via real-time listener
           showAlert('Reservation Canceled', 'Your reservation has been canceled', 'success');
         } else if (result === 'not_attending') {
           showAlert('Not Attending', 'You are not registered for this event', 'info');
         } else {
           showAlert('Error', 'Failed to cancel reservation. Please try again.', 'error');
         }
-      } else if (event.eventStatus === 'full') {
+      } else if (eventWithStatus.eventStatus === 'full') {
         showAlert('Event Full', 'This event is at capacity', 'info');
       } else {
-        // Reserve spot with retry mechanism
-        const result = await reserveEvent(event.id, user.uid);
+        // Reserve spot
+        const result = await reserveEvent(eventWithStatus.id, user.uid);
         if (result === 'reserved') {
-          // Event will update via real-time listener
           showAlert('Reservation Confirmed', 'You have successfully reserved a spot', 'success');
         } else if (result === 'already_reserved') {
           showAlert('Already Reserved', 'You already have a reservation for this event', 'info');
@@ -160,12 +200,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     const eventDate = item.date instanceof Timestamp 
       ? item.date.toDate() 
       : new Date(item.date);
-    const formattedDate = eventDate.toLocaleDateString('es-ES', { 
+    const formattedDate = eventDate.toLocaleDateString('en-US', { 
       weekday: 'short', 
       day: 'numeric', 
       month: 'short' 
     });
-    const formattedTime = eventDate.toLocaleTimeString('es-ES', { 
+    const formattedTime = eventDate.toLocaleTimeString('en-US', { 
       hour: 'numeric', 
       minute: '2-digit' 
     });
@@ -173,7 +213,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     const attendeesCount = item.attendees?.length || 0;
     const spotsRemaining = Math.max(0, item.capacity - attendeesCount);
 
-    // Convert EventDoc to EventCard props format
     const eventCardProps = {
       id: item.id,
       title: item.title,
@@ -201,6 +240,30 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     );
   };
 
+  const renderShowcaseEventCard = ({ item }: { item: EventData }) => {
+    return (
+      <EventCard
+        id={item.id}
+        title={item.title}
+        city={item.city}
+        neighborhood={item.neighborhood}
+        date={item.date.split(' · ')[0]}
+        time={item.date.split(' · ')[1]}
+        category={item.type}
+        membersOnly={item.isMembersOnly}
+        totalSpots={item.capacity}
+        spotsRemaining={item.remainingSpots}
+        attendingCount={item.membersCount}
+        rsvpStatus={null} // Never pre-mark RSVP for showcase events
+        imageUrl={item.imageUrl}
+        isShowcase={true}
+        vibe={item.vibe}
+        onPress={() => handleEventPress(item.id)}
+        onRsvpPress={() => handleRsvpPress(item)}
+      />
+    );
+  };
+
   const renderListFooter = () => (
     <View style={styles.footer}>
       <Text style={styles.footerText}>
@@ -209,28 +272,34 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     </View>
   );
 
-  const renderListEmpty = () => (
-    <View style={styles.emptyContainer}>
+  const renderEmptyRealEvents = () => (
+    <View style={styles.emptyRealEvents}>
       <Text style={styles.emptyText}>
-        {loading ? 'Loading events...' : 'No events found'}
+        {loading ? 'Loading events...' : 'No upcoming events in your area'}
+      </Text>
+      <Text style={styles.emptySubtext}>
+        Check out our Signature Experiences below
       </Text>
     </View>
   );
 
+  // Show all events in a single list with sections
+  const hasRealEvents = filteredEvents.length > 0;
+  const hasShowcaseEvents = filteredShowcaseEvents.length > 0;
+
   return (
     <View style={styles.container}>
       <FlatList
-        data={filteredEvents}
-        renderItem={renderEventCard}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={renderListEmpty}
+        data={[]} // We'll use ListHeaderComponent for all content
+        renderItem={() => null}
+        keyExtractor={() => 'header'}
         ListHeaderComponent={
           <>
             <HomeHeader
               userName={userDoc?.fullName || 'Guest'}
               city={city}
-              onNotificationPress={() => console.log('Notifications pressed')}
-              onCityPress={() => console.log('City pressed')}
+              onNotificationPress={() => {}}
+              onCityPress={() => {}}
             />
 
             <SearchBar
@@ -244,11 +313,46 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               onFilterChange={setSelectedFilter}
             />
 
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>
-                {t('section_upcoming_events', { city })}
-              </Text>
-            </View>
+            {/* Real Events Section */}
+            {selectedFilter !== 'went' && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>
+                    {t('section_upcoming_events', { city })}
+                  </Text>
+                </View>
+
+                {hasRealEvents ? (
+                  filteredEvents.map((event) => (
+                    <View key={event.id}>
+                      {renderEventCard({ item: event })}
+                    </View>
+                  ))
+                ) : (
+                  renderEmptyRealEvents()
+                )}
+              </>
+            )}
+
+            {/* Signature Experiences Section - Always show when filter is 'all' */}
+            {selectedFilter === 'all' && hasShowcaseEvents && (
+              <>
+                <View style={styles.showcaseSectionHeader}>
+                  <Text style={styles.showcaseSectionTitle}>
+                    ✨ Casa Latina Signature Experiences
+                  </Text>
+                  <Text style={styles.showcaseSectionSubtitle}>
+                    Premium curated events in Miami's finest venues
+                  </Text>
+                </View>
+
+                {filteredShowcaseEvents.map((event) => (
+                  <View key={event.id}>
+                    {renderShowcaseEventCard({ item: event })}
+                  </View>
+                ))}
+              </>
+            )}
           </>
         }
         ListFooterComponent={renderListFooter}
@@ -271,12 +375,30 @@ const createStyles = (theme: any, bottomInset: number) =>
     },
     sectionHeader: {
       paddingHorizontal: theme.spacing.md,
-      marginTop: theme.spacing.section, // Premium section spacing
-      marginBottom: theme.spacing.titleMargin, // Editorial spacing
+      marginTop: theme.spacing.section,
+      marginBottom: theme.spacing.titleMargin,
     },
     sectionTitle: {
       ...theme.typography.sectionTitle,
       color: theme.colors.text,
+    },
+    showcaseSectionHeader: {
+      paddingHorizontal: theme.spacing.md,
+      marginTop: theme.spacing.xxxl,
+      marginBottom: theme.spacing.lg,
+      paddingTop: theme.spacing.xl,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.border,
+    },
+    showcaseSectionTitle: {
+      ...theme.typography.sectionTitle,
+      color: theme.colors.softCream,
+      fontSize: 20,
+    },
+    showcaseSectionSubtitle: {
+      ...theme.typography.bodySmall,
+      color: theme.colors.textSecondary,
+      marginTop: theme.spacing.xs,
     },
     footer: {
       paddingHorizontal: theme.spacing.md,
@@ -288,14 +410,20 @@ const createStyles = (theme: any, bottomInset: number) =>
       color: theme.colors.textTertiary,
       textAlign: 'center',
     },
-    emptyContainer: {
-      paddingVertical: theme.spacing.xxxl,
+    emptyRealEvents: {
+      paddingVertical: theme.spacing.xl,
+      paddingHorizontal: theme.spacing.md,
       alignItems: 'center',
-      justifyContent: 'center',
     },
     emptyText: {
       ...theme.typography.body,
       color: theme.colors.textSecondary,
       textAlign: 'center',
+    },
+    emptySubtext: {
+      ...theme.typography.bodySmall,
+      color: theme.colors.textTertiary,
+      textAlign: 'center',
+      marginTop: theme.spacing.xs,
     },
   });
