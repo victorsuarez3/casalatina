@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ═══════════════════════════════════════════════════════════════
+    // HELPER FUNCTIONS
+    // ═══════════════════════════════════════════════════════════════
+
+    // Check if user is signed in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Check if user is the owner of the document
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Get user document (use carefully - costs 1 read per evaluation)
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    // Check if user is admin
+    function isAdmin() {
+      return isSignedIn() 
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && getUserDoc().data.role == 'admin';
+    }
+
+    // Check if user has approved membership
+    function isApprovedMember() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && getUserDoc().data.membershipStatus == 'approved';
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // USERS COLLECTION
+    // ═══════════════════════════════════════════════════════════════
+    match /users/{uid} {
+      // Users can read their own document
+      // Admins can read any user document
+      allow read: if isOwner(uid) || isAdmin();
+      
+      // Users can create/update their own document
+      // This allows: signup, application submission, profile updates
+      allow create, update: if isOwner(uid);
+      
+      // Only admins can delete user documents
+      allow delete: if isAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // EVENTS COLLECTION
+    // ═══════════════════════════════════════════════════════════════
+    match /events/{eventId} {
+      // Only approved members and admins can view events
+      allow read: if isApprovedMember() || isAdmin();
+      
+      // Only admins can create, update, or delete events
+      allow create, update, delete: if isAdmin();
+
+      // Attendees subcollection
+      match /attendees/{oderId} {
+        // Approved members can see attendees
+        allow read: if isApprovedMember() || isAdmin();
+        
+        // Approved members can add/remove themselves as attendees
+        allow create, delete: if isApprovedMember() 
+          && request.auth.uid == oderId;
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // RESERVATIONS COLLECTION
+    // ═══════════════════════════════════════════════════════════════
+    match /reservations/{reservationId} {
+      // Approved members can read reservations
+      // Admins can read all reservations
+      allow read: if isApprovedMember() || isAdmin();
+      
+      // Approved members can create reservations for themselves
+      allow create: if isApprovedMember()
+        && request.resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own reservations (cancel)
+      allow delete: if isApprovedMember()
+        && resource.data.userId == request.auth.uid;
+      
+      // Admins can delete any reservation
+      allow delete: if isAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // DEBUG COLLECTION (for testing - remove in production)
+    // ═══════════════════════════════════════════════════════════════
+    match /debug/{docId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

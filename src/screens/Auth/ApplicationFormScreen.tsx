@@ -124,16 +124,39 @@ export const ApplicationFormScreen: React.FC<ApplicationFormScreenProps> = ({
   const validateForm = () => {
     const newErrors: typeof errors = {};
     
-    if (!formData.position.trim()) newErrors.position = 'Required';
-    if (!formData.company.trim()) newErrors.company = 'Required';
-    if (!formData.industry) newErrors.industry = 'Required';
-    if (!formData.educationLevel) newErrors.educationLevel = 'Required';
-    if (!formData.incomeRange) newErrors.incomeRange = 'Required';
-    if (!formData.city.trim()) newErrors.city = 'Required';
+    // Position validation: required
+    if (!formData.position.trim()) {
+      newErrors.position = 'Position is required';
+    }
     
-    // Age validation
+    // Company validation: required
+    if (!formData.company.trim()) {
+      newErrors.company = 'Company/Employer is required';
+    }
+    
+    // Industry validation: required dropdown
+    if (!formData.industry) {
+      newErrors.industry = 'Industry is required';
+    }
+    
+    // Education level validation: required dropdown
+    if (!formData.educationLevel) {
+      newErrors.educationLevel = 'Education level is required';
+    }
+    
+    // Income range validation: required dropdown
+    if (!formData.incomeRange) {
+      newErrors.incomeRange = 'Income range is required';
+    }
+    
+    // City validation: required
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required';
+    }
+    
+    // Age validation: must be >= 21
     if (!formData.age.trim()) {
-      newErrors.age = 'Required';
+      newErrors.age = 'Age is required';
     } else {
       const ageNum = parseInt(formData.age, 10);
       if (isNaN(ageNum) || ageNum < 21) {
@@ -141,15 +164,20 @@ export const ApplicationFormScreen: React.FC<ApplicationFormScreenProps> = ({
       }
     }
     
-    // Instagram handle validation
+    // Instagram handle validation: just the username (without @)
     if (!formData.instagramHandle.trim()) {
-      newErrors.instagramHandle = 'Required';
+      newErrors.instagramHandle = 'Instagram handle is required';
     } else {
-      const handle = formData.instagramHandle.replace('@', '').trim();
-      if (handle.length < 1) {
+      const handle = formData.instagramHandle.trim();
+      // Remove @ if user typed it (we add it automatically)
+      const cleanHandle = handle.replace(/^@+/, '');
+      if (cleanHandle.length < 1) {
         newErrors.instagramHandle = 'Please enter a valid Instagram handle';
       }
     }
+    
+    // University is optional, no validation needed
+    // referralSource is optional, no validation needed
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -167,7 +195,7 @@ export const ApplicationFormScreen: React.FC<ApplicationFormScreenProps> = ({
 
   const formatInstagramHandle = (handle: string) => {
     // Remove @ if user types it, we'll add it in display
-    return handle.replace('@', '').trim();
+    return handle.replace(/^@+/, '').trim();
   };
 
   const renderDropdown = (

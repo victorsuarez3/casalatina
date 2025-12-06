@@ -1,134 +1,135 @@
 /**
  * Events Hook
- * Fetches and manages events data
+ * Fetches and manages events data with real-time Firestore updates
  */
 
 import { useState, useEffect } from 'react';
-import { getEventsByCity, getAllEvents } from '../services/firebase/events';
-import { Event } from '../services/firebase/types';
-import { getUserEventRsvp } from '../services/firebase/rsvps';
-import { useAuth } from './useAuth';
-import { mockEvents } from '../data/mockEvents';
+import { getEvents, getEventById, subscribeToEvent } from '../services/events';
+import { EventDoc } from '../models/firestore';
+import { useAuth } from '../providers/AuthProvider';
+import { getEventStatus, isEventPast, isUserAttending } from '../utils/eventStatus';
+import { Timestamp } from 'firebase/firestore';
 
-// Convert mock events to Firebase Event format
-const convertMockToEvent = (mock: any): Event => {
-  // Parse date string like "Vie, 15 Dic · 8:00 PM"
-  const dateParts = mock.date.split('·');
-  const dateStr = dateParts[0]?.trim() || 'Vie, 15 Dic';
-  const timeStr = dateParts[1]?.trim() || '8:00 PM';
-  
-  return {
-    id: mock.id,
-    title: mock.title,
-    city: mock.city,
-    neighborhood: mock.neighborhood,
-    category: mock.type.toUpperCase().replace(/\s+/g, '_').replace(/&/g, '_').replace(/_+/g, '_'),
-    date: dateStr, // Keep the formatted date string
-    time: timeStr,
-    membersOnly: mock.isMembersOnly,
-    totalSpots: mock.membersCount + mock.remainingSpots,
-    spotsRemaining: mock.remainingSpots,
-    attendingCount: mock.membersCount,
-    imageUrl: mock.imageUrl,
-  };
+export type EventWithStatus = EventDoc & {
+  eventStatus: 'attending' | 'full' | 'available';
+  rsvpStatus?: 'going' | 'went' | null;
 };
 
-export const useEventsByCity = (city: string) => {
-  const [events, setEvents] = useState<Event[]>([]);
+/**
+ * Hook to get all events with real-time updates
+ * Filters events based on RSVP status (Going/Went)
+ */
+export const useEventsWithRsvp = (city?: string) => {
+  const [events, setEvents] = useState<EventWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      try {
-        const fetchedEvents = await getEventsByCity(city);
-        setEvents(fetchedEvents);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    setLoading(true);
 
-    fetchEvents();
-  }, [city]);
+    // Subscribe to real-time events
+    const unsubscribe = getEvents((firestoreEvents) => {
+      // Filter by city if provided
+      let filteredEvents = firestoreEvents;
+      if (city) {
+        filteredEvents = firestoreEvents.filter(
+          (event) => event.city === city || !event.city
+        );
+      }
+
+      // Enrich events with status and RSVP info
+      const enrichedEvents: EventWithStatus[] = filteredEvents.map((event) => {
+        const eventStatus = getEventStatus(event, user?.uid || null);
+        const isPast = isEventPast(event);
+        const isAttending = isUserAttending(event, user?.uid || null);
+
+        // Determine RSVP status for filtering
+        let rsvpStatus: 'going' | 'went' | null = null;
+        if (isAttending) {
+          rsvpStatus = isPast ? 'went' : 'going';
+        }
+
+        return {
+          ...event,
+          eventStatus,
+          rsvpStatus,
+        };
+      });
+
+      setEvents(enrichedEvents);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [city, user?.uid]);
 
   return { events, loading };
 };
 
 /**
- * Get events with RSVP status for current user
+ * Hook to get a single event by ID with real-time updates
  */
-export const useEventsWithRsvp = (city: string) => {
-  const [events, setEvents] = useState<(Event & { rsvpStatus?: 'going' | 'waitlist' | 'went' | null })[]>([]);
+export const useEventById = (eventId: string) => {
+  const [event, setEvent] = useState<EventDoc | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchEventsWithRsvp = async () => {
-      setLoading(true);
-      
-      // For MVP Phase 1, always use mock events
-      // TODO: Replace with Firebase once data is seeded
-      const mockForCity = mockEvents.filter(e => e.city === city);
-      const convertedEvents = mockForCity.map(convertMockToEvent);
-      
-      console.log('Loading events for city:', city);
-      console.log('Mock events found:', mockForCity.length);
-      console.log('Converted events:', convertedEvents.length);
-      
-      try {
-        // Try to enrich with RSVP status if user is logged in
-        if (user) {
-          const eventsWithRsvp = await Promise.all(
-            convertedEvents.map(async (event) => {
-              try {
-                const rsvp = await getUserEventRsvp(user.id, event.id);
-                return {
-                  ...event,
-                  rsvpStatus: rsvp?.status || null,
-                };
-              } catch {
-                // If RSVP fetch fails, use mock RSVP status
-                const mockEvent = mockEvents.find(m => m.id === event.id);
-                return {
-                  ...event,
-                  rsvpStatus: (mockEvent?.rsvpStatus === 'going' ? 'going' : 
-                             mockEvent?.rsvpStatus === 'went' ? 'went' : 
-                             mockEvent?.rsvpStatus === 'waitlist' ? 'waitlist' : null) as 'going' | 'went' | 'waitlist' | null,
-                };
-              }
-            })
-          );
-          console.log('Events with RSVP:', eventsWithRsvp.length);
-          setEvents(eventsWithRsvp);
-        } else {
-          // If no user, use mock RSVP status
-          const eventsWithMockRsvp = convertedEvents.map((event) => {
-            const mockEvent = mockEvents.find(m => m.id === event.id);
-            return {
-              ...event,
-              rsvpStatus: (mockEvent?.rsvpStatus === 'going' ? 'going' : 
-                         mockEvent?.rsvpStatus === 'went' ? 'went' : 
-                         mockEvent?.rsvpStatus === 'waitlist' ? 'waitlist' : null) as 'going' | 'went' | 'waitlist' | null,
-            };
-          });
-          console.log('Events without user:', eventsWithMockRsvp.length);
-          setEvents(eventsWithMockRsvp);
-        }
-      } catch (error) {
-        console.error('Error processing events:', error);
-        // Fallback: just use events without RSVP enrichment
-        setEvents(convertedEvents.map(event => ({ ...event, rsvpStatus: null })));
-      } finally {
-        setLoading(false);
-      }
+    if (!eventId) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    // Subscribe to real-time event updates
+    const unsubscribe = subscribeToEvent(eventId, (firestoreEvent) => {
+      setEvent(firestoreEvent);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
     };
+  }, [eventId]);
 
-    fetchEventsWithRsvp();
-  }, [city, user]);
+  // Compute event status
+  const eventStatus = event ? getEventStatus(event, user?.uid || null) : 'available';
+  const isAttending = event ? isUserAttending(event, user?.uid || null) : false;
 
-  return { events, loading };
+  return {
+    event,
+    loading,
+    eventStatus,
+    isAttending,
+  };
 };
 
+/**
+ * Hook to filter events by RSVP status
+ * Used in HomeScreen for "Going" and "Went" filters
+ */
+export const useFilteredEvents = (
+  events: EventWithStatus[],
+  filter: 'all' | 'going' | 'went'
+) => {
+  const now = new Date();
+
+  return events.filter((event) => {
+    if (filter === 'all') {
+      return true;
+    }
+
+    if (filter === 'going') {
+      return event.rsvpStatus === 'going';
+    }
+
+    if (filter === 'went') {
+      return event.rsvpStatus === 'went';
+    }
+
+    return true;
+  });
+};

@@ -1,5 +1,5 @@
 /**
- * Pending Approval Screen - Casa Latina Premium
+ * Application Review Screen - Casa Latina Premium
  * Waiting for admin approval after application submission
  */
 
@@ -13,19 +13,25 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '../hooks/useTheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '../providers/AuthProvider';
+import { showAlert } from '../utils/alert';
 
-interface PendingApprovalScreenProps {
-  onSignOut: () => Promise<void>;
-}
-
-export const PendingApprovalScreen: React.FC<PendingApprovalScreenProps> = ({
-  onSignOut,
-}) => {
+export const ApplicationReviewScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { logout } = useAuth();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, insets.top, insets.bottom);
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } catch (error: any) {
+      console.error('Error signing out:', error);
+      showAlert('Error', 'Failed to sign out. Please try again.', 'error');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -80,7 +86,7 @@ export const PendingApprovalScreen: React.FC<PendingApprovalScreenProps> = ({
           {/* Sign Out Button */}
           <TouchableOpacity
             style={styles.signOutButton}
-            onPress={onSignOut}
+            onPress={handleSignOut}
             activeOpacity={0.85}
           >
             <Text style={styles.signOutText}>Sign out</Text>
@@ -169,6 +175,4 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
       fontSize: 14,
     },
   });
-
-
 

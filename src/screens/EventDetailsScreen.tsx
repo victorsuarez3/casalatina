@@ -20,10 +20,13 @@ import { Button } from '../components/Button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { EventDetailsScreenProps } from '../navigation/types';
-import { getEventById } from '../services/firebase/events';
-import { Event } from '../services/firebase/types';
+import { useEvent } from '../hooks/useEvent';
+import { reserveEvent, cancelReservation, CancelReservationResult } from '../services/events';
+import { useAuth } from '../providers/AuthProvider';
+import { showAlert } from '../utils/alert';
+import { EventDoc } from '../models/firestore';
 import { t } from '../i18n';
-import { mockEvents } from '../data/mockEvents';
+import { Timestamp } from 'firebase/firestore';
 
 const tabs = ['Our Story', 'Order of the day', 'Dinning'];
 
@@ -40,95 +43,36 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState(0);
-  const [event, setEvent] = React.useState<Event | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const { user } = useAuth();
   const styles = createStyles(theme, insets.bottom);
 
   const { eventId } = route.params;
+  
+  // Use real-time event hook with caching
+  const { event, loading, status, isAttending, capacityLeft } = useEvent(eventId);
 
   // Fade in animation
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const imageOpacity = React.useRef(new Animated.Value(0)).current;
 
-  // Helper function to convert mock event to Event format
-  const convertMockToEvent = (mockEvent: any): Event => {
-    const dateParts = mockEvent.date.split('·');
-    const dateStr = dateParts[0]?.trim() || 'Vie, 15 Dic';
-    const timeStr = dateParts[1]?.trim() || '8:00 PM';
-    
-    return {
-      id: mockEvent.id,
-      title: mockEvent.title,
-      city: mockEvent.city,
-      neighborhood: mockEvent.neighborhood,
-      category: mockEvent.type.toUpperCase().replace(/\s+/g, '_').replace(/&/g, '_').replace(/_+/g, '_'),
-      date: dateStr,
-      time: timeStr,
-      membersOnly: mockEvent.isMembersOnly,
-      totalSpots: mockEvent.membersCount + mockEvent.remainingSpots,
-      spotsRemaining: mockEvent.remainingSpots,
-      attendingCount: mockEvent.membersCount,
-      imageUrl: mockEvent.imageUrl,
-    };
-  };
-
   React.useEffect(() => {
-    const fetchEvent = async () => {
-      setLoading(true);
-      
-      // For MVP Phase 1, always use mockEvents
-      // Firebase integration will be added when backend is ready
-      const mockEvent = mockEvents.find(e => e.id === eventId);
-      
-      if (mockEvent) {
-        const convertedEvent = convertMockToEvent(mockEvent);
-        setEvent(convertedEvent);
-        
-        // Animate in
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.timing(imageOpacity, {
-            toValue: 1,
-            duration: 280,
-            delay: 50,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      } else {
-        // Try Firebase as fallback (for future use)
-        try {
-          const fetchedEvent = await getEventById(eventId);
-          if (fetchedEvent) {
-            setEvent(fetchedEvent);
-            Animated.parallel([
-              Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-              }),
-              Animated.timing(imageOpacity, {
-                toValue: 1,
-                duration: 280,
-                delay: 50,
-                useNativeDriver: true,
-              }),
-            ]).start();
-          }
-        } catch (error) {
-          // Silently handle Firebase errors - we're using mocks for MVP
-          console.log('Firebase offline or error, using mock data');
-        }
-      }
-      
-      setLoading(false);
-    };
-    
-    fetchEvent();
-  }, [eventId]);
+    if (event && !loading) {
+      // Animate in when event loads
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(imageOpacity, {
+          toValue: 1,
+          duration: 280,
+          delay: 50,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [event, loading]);
 
   if (loading) {
     return (
@@ -160,20 +104,77 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
     );
   }
 
-  const handleEnroll = () => {
-    console.log('Enroll pressed for event:', event.id);
-    // TODO: Implement enroll logic
+
+  const handleEnroll = async () => {
+    if (!user) {
+      showAlert('Sign In Required', 'Please sign in to reserve a spot', 'info');
+      return;
+    }
+
+    if (!event) {
+      return;
+    }
+
+    try {
+      if (isAttending) {
+        // Cancel reservation
+        const result: CancelReservationResult = await cancelReservation(event.id, user.uid);
+        if (result === 'canceled') {
+          showAlert('Reservation Canceled', 'Your reservation has been canceled', 'success');
+        } else if (result === 'not_attending') {
+          showAlert('Not Attending', 'You are not registered for this event', 'info');
+        } else {
+          showAlert('Error', 'Failed to cancel reservation. Please try again.', 'error');
+        }
+      } else if (status === 'full') {
+        showAlert('Event Full', 'This event is at capacity', 'info');
+      } else {
+        // Reserve spot with retry mechanism
+        const result = await reserveEvent(event.id, user.uid);
+        if (result === 'reserved') {
+          showAlert('Reservation Confirmed', 'You have successfully reserved a spot', 'success');
+        } else if (result === 'already_reserved') {
+          showAlert('Already Reserved', 'You already have a reservation for this event', 'info');
+        } else if (result === 'full') {
+          showAlert('Event Full', 'This event is now at capacity', 'info');
+        } else {
+          showAlert('Error', 'Failed to reserve spot. Please try again.', 'error');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling enrollment:', error);
+      showAlert('Error', 'An unexpected error occurred. Please try again.', 'error');
+    }
   };
 
-  // Generate member avatars - Fixed: use attendingCount
-  const memberAvatars = Array.from({ length: Math.min(event.attendingCount, 5) }, (_, i) => ({
+  // Generate member avatars from attendees
+  const attendeesCount = event.attendees?.length || 0;
+  const memberAvatars = Array.from({ length: Math.min(attendeesCount, 5) }, (_, i) => ({
     id: i,
     initial: String.fromCharCode(65 + (i % 26)),
   }));
 
+  // Format date and time
+  const eventDate = event.date instanceof Timestamp 
+    ? event.date.toDate() 
+    : new Date(event.date);
+  const formattedDate = eventDate.toLocaleDateString('es-ES', { 
+    weekday: 'short', 
+    day: 'numeric', 
+    month: 'short' 
+  });
+  const formattedTime = eventDate.toLocaleTimeString('es-ES', { 
+    hour: 'numeric', 
+    minute: '2-digit' 
+  });
+
   // Clean category label
-  const cleanCategory = event.category.replace(/_+/g, ' ').trim();
-  const categoryLabel = CATEGORY_LABELS[event.category] || cleanCategory.toUpperCase();
+  const categoryType = event.type || '';
+  const cleanCategory = categoryType.replace(/_+/g, ' ').trim();
+  const categoryLabel = CATEGORY_LABELS[categoryType] || cleanCategory.toUpperCase();
+  
+  // Use capacityLeft from hook
+  const spotsRemaining = capacityLeft;
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
@@ -201,7 +202,7 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
         {/* Event Image - Premium */}
         <View style={styles.imageContainer}>
           <Animated.Image 
-            source={{ uri: event.imageUrl }} 
+            source={{ uri: event.image || event.coverImageUrl || '' }} 
             style={[styles.image, { opacity: imageOpacity }]} 
             resizeMode="cover"
           />
@@ -219,7 +220,7 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
           </View>
           
           {/* Price/Members Badge */}
-          {(event.membersOnly || event.spotsRemaining > 0) && (
+          {(event.membersOnly || spotsRemaining > 0) && (
             <View style={[
               styles.priceBadge,
               event.membersOnly && styles.priceBadgeMembersOnly
@@ -228,7 +229,7 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
                 styles.priceText,
                 event.membersOnly && styles.priceTextMembersOnly
               ]}>
-                {event.membersOnly ? t('event_members_only') : `${event.spotsRemaining} spots`}
+                {event.membersOnly ? t('event_members_only') : `${spotsRemaining} spots`}
               </Text>
             </View>
           )}
@@ -246,7 +247,7 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
                 size={16}
                 color={theme.colors.textSecondary}
               />
-              <Text style={styles.infoText}>{event.date} · {event.time}</Text>
+              <Text style={styles.infoText}>{formattedDate} · {formattedTime}</Text>
             </View>
             <View style={styles.infoRow}>
               <Ionicons
@@ -255,7 +256,7 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
                 color={theme.colors.textSecondary}
               />
               <Text style={styles.infoText}>
-                {event.city} · {event.neighborhood}
+                {event.city || 'Miami'} · {event.location}
               </Text>
             </View>
           </View>
@@ -268,7 +269,7 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
             <View style={styles.organizerInfo}>
               <Text style={styles.organizerName}>Andrew Ainsley</Text>
               <Text style={styles.organizerLocation}>
-                {event.city} · {event.neighborhood}
+                {event.city || 'Miami'} · {event.location}
               </Text>
               <Text style={styles.organizerEvents}>25 Event</Text>
             </View>
@@ -314,20 +315,27 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
                     <Text style={styles.memberAvatarText}>{member.initial}</Text>
                   </View>
                 ))}
-                {event.attendingCount > 5 && (
+                {attendeesCount > 5 && (
                   <View style={styles.moreMembers}>
                     <Text style={styles.moreMembersText}>
-                      {event.attendingCount - 5}+
+                      {attendeesCount - 5}+
                     </Text>
                   </View>
                 )}
               </View>
               <Button
-                title={t('event_details_enroll')}
+                title={
+                  isAttending 
+                    ? 'Cancel Reservation' 
+                    : status === 'full' 
+                    ? 'Event Full' 
+                    : t('event_details_enroll')
+                }
                 onPress={handleEnroll}
-                variant="primary"
+                variant={isAttending ? 'outline' : 'primary'}
                 fullWidth={false}
                 style={styles.enrollButton}
+                disabled={status === 'full' && !isAttending}
               />
             </View>
           </View>

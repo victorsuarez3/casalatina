@@ -1,48 +1,41 @@
 /**
  * Firebase Configuration
- * 
- * Uses environment variables from .env file (via Expo Constants)
- * 
+ *
+ * Uses environment variables from .env file (EXPO_PUBLIC_FIREBASE_*)
+ *
  * Required Firebase services:
  * - Authentication (Email/Password)
  * - Cloud Firestore
  */
 
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import Constants from 'expo-constants';
-
-// Get Firebase config from Expo Constants (injected from .env via app.config.ts)
-const extra = Constants.expoConfig?.extra ?? Constants.manifest?.extra ?? {};
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: extra.firebaseApiKey,
-  authDomain: extra.firebaseAuthDomain,
-  projectId: extra.firebaseProjectId,
-  storageBucket: extra.firebaseStorageBucket,
-  messagingSenderId: extra.firebaseMessagingSenderId,
-  appId: extra.firebaseAppId,
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Validate that all required config values are present
-if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
-  throw new Error(
-    'Firebase configuration is missing. Please check your .env file and ensure all EXPO_PUBLIC_FIREBASE_* variables are set.'
-  );
-}
-
-// Initialize Firebase (only if not already initialized)
 let app: FirebaseApp;
-if (getApps().length === 0) {
+
+if (!getApps().length) {
   app = initializeApp(firebaseConfig);
 } else {
-  app = getApps()[0];
+  app = getApps()[0]!;
 }
 
-// Export auth and firestore instances
-export const auth: Auth = getAuth(app);
-export const db: Firestore = getFirestore(app);
+export const firebaseApp = app;
 
-export default app;
+// Initialize Auth
+// Note: Auth persistence will use default behavior (memory for React Native)
+// For production, consider adding AsyncStorage persistence if needed
+export const auth = getAuth(app);
 
+// Initialize Firestore with named database (Native Mode)
+// The (default) database is in Datastore Mode which doesn't work with Firebase SDK
+export const db = getFirestore(app, 'casa-latina-premium-app');

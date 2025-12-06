@@ -15,12 +15,16 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
+import { TouchableOpacity } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
+import { Button } from '../components/Button';
 
 const { width, height } = Dimensions.get('window');
 
 interface SplashScreenProps {
   onFinish: () => void;
+  showContinueButton?: boolean;
+  onContinue?: () => void;
 }
 
 interface Particle {
@@ -31,7 +35,7 @@ interface Particle {
   delay: number;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContinueButton = false, onContinue }) => {
   const { theme } = useTheme();
 
   // Animations
@@ -44,6 +48,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   const sparkleOpacity = useRef(new Animated.Value(0)).current;
   const sparkleScale = useRef(new Animated.Value(0.1)).current; // Empieza pequeño como punto
   const sparkleRotate = useRef(new Animated.Value(-15)).current; // Empieza rotado
+  const continueButtonOpacity = useRef(new Animated.Value(0)).current;
+  const continueButtonTranslateY = useRef(new Animated.Value(20)).current;
 
   // Particles - Premium golden sparkles
   const particles: Particle[] = [
@@ -181,10 +187,30 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
       }).start();
     }, 1200);
 
-    // Finish and transition (2100ms total - adjusted for background fade)
-    setTimeout(() => {
-      onFinish();
-    }, 2100);
+    // Continue button fade-in (if enabled) - appears after all animations (2100ms)
+    if (showContinueButton) {
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(continueButtonOpacity, {
+            toValue: 1,
+            duration: 500,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(continueButtonTranslateY, {
+            toValue: 0,
+            duration: 500,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, 2100);
+    } else {
+      // Finish and transition (2100ms total - adjusted for background fade)
+      setTimeout(() => {
+        onFinish();
+      }, 2100);
+    }
   }, []);
 
   const styles = createStyles(theme);
@@ -240,7 +266,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
           ]}
         >
           <Image
-            source={require('../../assets/splash-icon.png')}
+            source={require('../../assets/splash-icon-transparent.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -271,6 +297,33 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
             </Svg>
           </Animated.View>
         </Animated.View>
+
+        {/* Continue Button - appears after animation if showContinueButton is true */}
+        {showContinueButton && (
+          <Animated.View
+            style={[
+              styles.buttonContainer,
+              {
+                opacity: continueButtonOpacity,
+                transform: [{ translateY: continueButtonTranslateY }],
+              },
+            ]}
+          >
+            <Button
+              title="Continuar"
+              onPress={() => {
+                if (onContinue) {
+                  onContinue();
+                } else {
+                  onFinish();
+                }
+              }}
+              variant="primary"
+              size="large"
+              fullWidth
+            />
+          </Animated.View>
+        )}
       </View>
     </Animated.View>
   );
@@ -320,8 +373,8 @@ const createStyles = (theme: any) =>
     },
     sparkleContainer: {
       position: 'absolute',
-      top: 20, // Más cerca del borde superior del escudo
-      right: 38, // Más cerca del borde derecho del escudo
+      top: 5, // Más cerca del borde superior del escudo
+      right: 40, // Más cerca del borde derecho del escudo
       width: 50,
       height: 50,
       alignItems: 'center',
@@ -359,5 +412,12 @@ const createStyles = (theme: any) =>
       letterSpacing: 1,
       marginTop: 20,
       textAlign: 'center',
+    },
+    buttonContainer: {
+      position: 'absolute',
+      bottom: 60,
+      left: 40,
+      right: 40,
+      alignItems: 'center',
     },
   });

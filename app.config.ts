@@ -19,7 +19,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: './assets/adaptive-icon.png',
+        foregroundImage: './assets/icon-transparent.png',
         backgroundColor: '#000000',
       },
       edgeToEdgeEnabled: true,

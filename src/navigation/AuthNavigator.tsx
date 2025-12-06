@@ -6,11 +6,15 @@
 import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { showAlert } from '../utils/alert';
 import { SplashScreen } from '../screens/Auth/SplashScreen';
 import { LoginScreen } from '../screens/Auth/LoginScreen';
 import { RegisterScreen } from '../screens/Auth/RegisterScreen';
 import { ApplicationFormScreen, ApplicationFormData } from '../screens/Auth/ApplicationFormScreen';
 import { PendingApprovalScreen } from '../screens/Auth/PendingApprovalScreen';
+import { signUp, signIn } from '../services/auth';
+import { useAuth } from '../providers/AuthProvider';
+import { UserDoc } from '../models/firestore';
 
 export type AuthStackParamList = {
   Splash: undefined;
@@ -26,9 +30,10 @@ type AuthNavigatorProps = NativeStackScreenProps<AuthStackParamList>;
 
 interface AuthNavigatorContainerProps {
   onAuthSuccess: () => void;
+  onRegisterSuccess?: () => void;
 }
 
-export const AuthNavigator: React.FC<AuthNavigatorContainerProps> = ({ onAuthSuccess }) => {
+export const AuthNavigator: React.FC<AuthNavigatorContainerProps> = ({ onAuthSuccess, onRegisterSuccess }) => {
   const [showSplash, setShowSplash] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -70,6 +75,7 @@ export const AuthNavigator: React.FC<AuthNavigatorContainerProps> = ({ onAuthSuc
             {...props}
             setLoading={setLoading}
             loading={loading}
+            onRegisterSuccess={onRegisterSuccess}
           />
         )}
       </Stack.Screen>
@@ -100,14 +106,26 @@ const LoginScreenWrapper: React.FC<AuthNavigatorProps & {
   setLoading: (loading: boolean) => void;
   loading: boolean;
 }> = ({ navigation, onAuthSuccess, setLoading, loading }) => {
+
   const handleLogin = async (email: string, password: string) => {
-    setLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log('Login attempt:', { email, password });
-    setLoading(false);
-    // For now, just navigate to main app
-    onAuthSuccess();
+    try {
+      setLoading(true);
+      await signIn(email, password);
+      // onAuthStateChanged will automatically load userDoc, no need to refresh
+      // Navigation will be handled by App.tsx based on membershipStatus
+      onAuthSuccess();
+    } catch (error: any) {
+      setLoading(false);
+      const errorMessage =
+        error.code === 'auth/user-not-found'
+          ? 'No account found with this email'
+          : error.code === 'auth/wrong-password'
+          ? 'Incorrect password'
+          : error.code === 'auth/invalid-email'
+          ? 'Invalid email address'
+          : 'Failed to sign in. Please try again.';
+      showAlert('Sign In Error', errorMessage, 'error');
+    }
   };
 
   return (
@@ -122,14 +140,32 @@ const LoginScreenWrapper: React.FC<AuthNavigatorProps & {
 const RegisterScreenWrapper: React.FC<AuthNavigatorProps & {
   setLoading: (loading: boolean) => void;
   loading: boolean;
-}> = ({ navigation, setLoading, loading }) => {
+  onRegisterSuccess?: () => void;
+}> = ({ navigation, setLoading, loading, onRegisterSuccess }) => {
   const handleRegister = async (email: string, password: string, name: string) => {
-    setLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log('Register attempt:', { email, password, name });
-    setLoading(false);
-    navigation.navigate('ApplicationForm');
+    try {
+      setLoading(true);
+      await signUp(email, password, name);
+      // onAuthStateChanged will automatically load userDoc via snapshot
+      // No need to manually refresh - this is faster
+      setLoading(false);
+      // Notify parent that registration was successful
+      // App.tsx will detect the user and route to ApplicationStartScreen
+      if (onRegisterSuccess) {
+        onRegisterSuccess();
+      }
+    } catch (error: any) {
+      setLoading(false);
+      const errorMessage =
+        error.code === 'auth/email-already-in-use'
+          ? 'An account with this email already exists'
+          : error.code === 'auth/invalid-email'
+          ? 'Invalid email address'
+          : error.code === 'auth/weak-password'
+          ? 'Password is too weak. Please use at least 6 characters'
+          : 'Failed to create account. Please try again.';
+      showAlert('Sign Up Error', errorMessage, 'error');
+    }
   };
 
   return (
@@ -145,13 +181,47 @@ const ApplicationFormScreenWrapper: React.FC<AuthNavigatorProps & {
   setLoading: (loading: boolean) => void;
   loading: boolean;
 }> = ({ navigation, setLoading, loading }) => {
+  const { user, updateUser } = useAuth();
+
   const handleApplicationSubmit = async (formData: ApplicationFormData) => {
-    setLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log('Application submitted:', formData);
-    setLoading(false);
-    navigation.navigate('PendingApproval');
+    if (!user) {
+      showAlert('Error', 'You must be logged in to submit an application', 'error');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Convert form data to the format expected by Firestore
+      const ageValue = typeof formData.age === 'string' ? parseInt(formData.age, 10) : formData.age;
+      // Instagram handle: remove any @ and add it back (user only types username)
+      const cleanHandle = formData.instagramHandle.replace(/^@+/, '').trim();
+      const instagramHandleValue = `@${cleanHandle}`;
+
+      const applicationData: Partial<UserDoc> = {
+        positionTitle: formData.position,
+        company: formData.company,
+        industry: formData.industry,
+        educationLevel: formData.educationLevel,
+        university: formData.university || undefined,
+        annualIncomeRange: formData.incomeRange,
+        city: formData.city,
+        age: ageValue,
+        instagramHandle: instagramHandleValue,
+        heardAboutUs: formData.referralSource || undefined,
+        membershipStatus: 'pending' as const,
+      };
+
+      // Update user document with application data
+      await updateUser(applicationData);
+
+      setLoading(false);
+      navigation.navigate('PendingApproval');
+    } catch (error: any) {
+      setLoading(false);
+      showAlert('Error', 'Failed to submit application. Please try again.', 'error');
+      console.error('Error submitting application:', error);
+    }
   };
 
   return (
@@ -165,9 +235,15 @@ const ApplicationFormScreenWrapper: React.FC<AuthNavigatorProps & {
 const PendingApprovalScreenWrapper: React.FC<AuthNavigatorProps & {
   onAuthSuccess: () => void;
 }> = ({ navigation, onAuthSuccess }) => {
+  const { logout } = useAuth();
+
   const handleSignOut = async () => {
-    console.log('Sign out');
-    navigation.navigate('Login');
+    try {
+      await logout();
+      navigation.navigate('Login');
+    } catch (error) {
+      showAlert('Error', 'Failed to sign out. Please try again.', 'error');
+    }
   };
 
   return <PendingApprovalScreen onSignOut={handleSignOut} />;
