@@ -26,12 +26,16 @@ interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<void>;
   onNavigateToRegister: () => void;
   loading?: boolean;
+  onShowTermsModal?: () => void;
+  onShowPrivacyModal?: () => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   onLogin,
   onNavigateToRegister,
   loading = false,
+  onShowTermsModal,
+  onShowPrivacyModal,
 }) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -44,19 +48,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
-    
+
     if (!email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = 'Please enter a valid email';
     }
-    
+
     if (!password) {
       newErrors.password = 'Password is required';
     } else if (password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -162,6 +166,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 </TouchableOpacity>
               </View>
               {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+            </View>
+
+            {/* Terms and Conditions */}
+            <View style={styles.termsContainer}>
+              <Text style={styles.termsText}>
+                By signing in, you agree to our{' '}
+                <Text
+                  style={styles.termsLink}
+                  onPress={onShowTermsModal}
+                >
+                  Terms and Conditions
+                </Text>
+                {' '}and{' '}
+                <Text
+                  style={styles.termsLink}
+                  onPress={onShowPrivacyModal}
+                >
+                  Privacy Policy
+                </Text>
+              </Text>
             </View>
 
             {/* Login Button */}
@@ -307,6 +331,22 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
       ...theme.typography.bodyMedium,
       color: theme.colors.primary,
       fontWeight: '600',
+    },
+    termsContainer: {
+      marginTop: theme.spacing.lg,
+      marginBottom: theme.spacing.md,
+      alignItems: 'center',
+    },
+    termsText: {
+      ...theme.typography.bodySmall,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 20,
+      fontSize: 14,
+    },
+    termsLink: {
+      color: theme.colors.primary,
+      textDecorationLine: 'underline',
     },
   });
 
