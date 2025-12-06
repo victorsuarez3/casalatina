@@ -138,6 +138,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       return;
     }
 
+    // For featured events, show success without Firestore write
+    if ('isShowcase' in event && event.isShowcase) {
+      showAlert('Reservation Confirmed', 'You have successfully reserved a spot for this experience.', 'success');
+      return;
+    }
+
     const eventWithStatus = event as EventWithStatus;
 
     try {
