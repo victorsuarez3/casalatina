@@ -1,10 +1,10 @@
 /**
  * Profile Details Section - Casa Latina Premium
  * Social/visible fields that other members can see
- * These are NOT used for membership validation
+ * Pre-fills with data from application, allows editing
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,16 +13,19 @@ import {
   ScrollView,
   TouchableOpacity,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
+import { useAuth } from '../providers/AuthProvider';
+import { showAlert } from '../utils/alert';
 
 interface ProfileFormData {
-  // Basic visible info (converges with application)
+  // Basic visible info (from application)
   position: string;
   company: string;
-  // Social/visible fields (NOT for validation)
+  // Social/visible fields
   bio: string;
   instagramHandle: string;
   hobbies: string;
@@ -33,7 +36,9 @@ interface ProfileFormData {
 
 export const ProfileDetailsSection: React.FC = () => {
   const { theme } = useTheme();
+  const { userDoc, updateUser } = useAuth();
   const styles = createStyles(theme);
+  const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState<ProfileFormData>({
     position: '',
@@ -46,9 +51,42 @@ export const ProfileDetailsSection: React.FC = () => {
     favoriteCoffeeSpot: '',
   });
 
-  const handleSave = () => {
-    console.log('Profile form data:', formData);
-    // TODO: Wire to backend
+  // Load existing data from userDoc
+  useEffect(() => {
+    if (userDoc) {
+      setFormData({
+        position: userDoc.positionTitle || '',
+        company: userDoc.company || '',
+        bio: userDoc.bio || '',
+        instagramHandle: userDoc.instagramHandle?.replace('@', '') || '',
+        hobbies: userDoc.hobbies || '',
+        favoriteMovie: userDoc.favoriteMovie || '',
+        favoriteRestaurant: userDoc.favoriteRestaurant || '',
+        favoriteCoffeeSpot: userDoc.favoriteCoffeeSpot || '',
+      });
+    }
+  }, [userDoc]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await updateUser({
+        positionTitle: formData.position || undefined,
+        company: formData.company || undefined,
+        bio: formData.bio || undefined,
+        instagramHandle: formData.instagramHandle ? `@${formData.instagramHandle.replace('@', '')}` : undefined,
+        hobbies: formData.hobbies || undefined,
+        favoriteMovie: formData.favoriteMovie || undefined,
+        favoriteRestaurant: formData.favoriteRestaurant || undefined,
+        favoriteCoffeeSpot: formData.favoriteCoffeeSpot || undefined,
+      });
+      showAlert('Profile Updated', 'Your profile has been saved successfully.', 'success');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      showAlert('Error', 'Failed to save profile. Please try again.', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const updateField = (field: keyof ProfileFormData, value: string) => {
@@ -74,7 +112,7 @@ export const ProfileDetailsSection: React.FC = () => {
       {/* Basic Information Section */}
       <Text style={styles.sectionTitle}>Basic Information</Text>
 
-      {/* Position */}
+      {/* Position - Pre-filled from application */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Position</Text>
         <TextInput
@@ -86,7 +124,7 @@ export const ProfileDetailsSection: React.FC = () => {
         />
       </View>
 
-      {/* Company */}
+      {/* Company - Pre-filled from application */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Company</Text>
         <TextInput
@@ -118,7 +156,7 @@ export const ProfileDetailsSection: React.FC = () => {
         />
       </View>
 
-      {/* Instagram Handle */}
+      {/* Instagram Handle - Pre-filled from application */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Instagram Handle</Text>
         <View style={styles.inputWrapper}>
@@ -214,6 +252,7 @@ export const ProfileDetailsSection: React.FC = () => {
         style={styles.saveButton}
         onPress={handleSave}
         activeOpacity={0.85}
+        disabled={saving}
       >
         <LinearGradient
           colors={[theme.colors.primary, theme.colors.primaryDark]}
@@ -221,7 +260,11 @@ export const ProfileDetailsSection: React.FC = () => {
           end={{ x: 1, y: 1 }}
           style={styles.saveButtonGradient}
         >
-          <Text style={styles.saveButtonText}>Save changes</Text>
+          {saving ? (
+            <ActivityIndicator color={theme.colors.background} />
+          ) : (
+            <Text style={styles.saveButtonText}>Save changes</Text>
+          )}
         </LinearGradient>
       </TouchableOpacity>
     </ScrollView>

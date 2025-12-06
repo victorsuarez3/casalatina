@@ -37,6 +37,12 @@ export interface UserDoc {
   heardAboutUs?: string;
   // Invite code for referring new members
   inviteCode?: string;
+  // Profile social fields (editable by user)
+  bio?: string;
+  hobbies?: string;
+  favoriteMovie?: string;
+  favoriteRestaurant?: string;
+  favoriteCoffeeSpot?: string;
 }
 
 export interface ApplicationDoc {
