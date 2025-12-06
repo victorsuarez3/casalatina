@@ -50,6 +50,24 @@ export default {
       favicon: "./assets/favicon.png",
     },
     scheme: "casalatina",
+    plugins: [
+      [
+        "expo-font",
+        {
+          fonts: [
+            "node_modules/@expo-google-fonts/cormorant-garamond/300Light/CormorantGaramond_300Light.ttf",
+            "node_modules/@expo-google-fonts/cormorant-garamond/400Regular/CormorantGaramond_400Regular.ttf",
+            "node_modules/@expo-google-fonts/cormorant-garamond/600SemiBold/CormorantGaramond_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/cormorant-garamond/700Bold/CormorantGaramond_700Bold.ttf",
+            "node_modules/@expo-google-fonts/inter/300Light/Inter_300Light.ttf",
+            "node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf",
+            "node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf",
+            "node_modules/@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf",
+          ],
+        },
+      ],
+    ],
     extra: {
       eas: {
         projectId: "45050d16-7ca5-4645-8876-e8f57321d85c",
