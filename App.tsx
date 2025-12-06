@@ -9,19 +9,7 @@ import * as SplashScreenNative from 'expo-splash-screen';
 
 // Keep splash screen visible until fonts are loaded
 SplashScreenNative.preventAutoHideAsync();
-import {
-  CormorantGaramond_300Light,
-  CormorantGaramond_400Regular,
-  CormorantGaramond_600SemiBold,
-  CormorantGaramond_700Bold,
-} from '@expo-google-fonts/cormorant-garamond';
-import {
-  Inter_300Light,
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
+
 import { ThemeProvider } from './src/hooks/useTheme';
 import { AuthProvider, useAuth } from './src/providers/AuthProvider';
 import { AppNavigator } from './src/navigation/AppNavigator';
@@ -130,17 +118,17 @@ function AppContent() {
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    // Premium editorial fonts
-    CormorantGaramond_300Light,
-    CormorantGaramond_400Regular,
-    CormorantGaramond_600SemiBold,
-    CormorantGaramond_700Bold,
-    // Body fonts
-    Inter_300Light,
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    // Premium editorial fonts - loaded from local assets
+    CormorantGaramond_300Light: require('./assets/fonts/CormorantGaramond_300Light.ttf'),
+    CormorantGaramond_400Regular: require('./assets/fonts/CormorantGaramond_400Regular.ttf'),
+    CormorantGaramond_600SemiBold: require('./assets/fonts/CormorantGaramond_600SemiBold.ttf'),
+    CormorantGaramond_700Bold: require('./assets/fonts/CormorantGaramond_700Bold.ttf'),
+    // Body fonts - loaded from local assets
+    Inter_300Light: require('./assets/fonts/Inter_300Light.ttf'),
+    Inter_400Regular: require('./assets/fonts/Inter_400Regular.ttf'),
+    Inter_500Medium: require('./assets/fonts/Inter_500Medium.ttf'),
+    Inter_600SemiBold: require('./assets/fonts/Inter_600SemiBold.ttf'),
+    Inter_700Bold: require('./assets/fonts/Inter_700Bold.ttf'),
   });
 
   // Hide native splash once fonts are loaded
