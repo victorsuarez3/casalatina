@@ -37,6 +37,8 @@ export interface UserDoc {
   heardAboutUs?: string;
   // Invite code for referring new members
   inviteCode?: string;
+  // Profile photo URL (uploaded to Firebase Storage)
+  photoUrl?: string;
   // Profile social fields (editable by user)
   bio?: string;
   hobbies?: string;

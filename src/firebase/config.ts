@@ -6,11 +6,13 @@
  * Required Firebase services:
  * - Authentication (Email/Password)
  * - Cloud Firestore
+ * - Cloud Storage
  */
 
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -39,3 +41,6 @@ export const auth = getAuth(app);
 // Initialize Firestore with named database (Native Mode)
 // The (default) database is in Datastore Mode which doesn't work with Firebase SDK
 export const db = getFirestore(app, 'casa-latina-premium-app');
+
+// Initialize Firebase Storage for profile photos and media
+export const storage = getStorage(app);

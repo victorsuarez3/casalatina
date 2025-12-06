@@ -407,7 +407,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
                 We reserve the right to modify these terms at any time. Continued use of the service constitutes acceptance of updated terms.
               </Text>
 
-              <Text style={styles.legalUpdated}>Last updated: December 2024</Text>
+              <Text style={styles.legalUpdated}>Last updated: December 2025</Text>
             </ScrollView>
             <TouchableOpacity
               style={styles.infoModalButton}
@@ -473,7 +473,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
                 For privacy inquiries, email privacy@casalatina.club. We respond to all requests within 30 days.
               </Text>
 
-              <Text style={styles.legalUpdated}>Last updated: December 2024</Text>
+              <Text style={styles.legalUpdated}>Last updated: December 2025</Text>
             </ScrollView>
             <TouchableOpacity
               style={styles.infoModalButton}

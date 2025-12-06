@@ -3,13 +3,14 @@
  * User profile with upcoming and past events
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,9 +20,11 @@ import { useAuth } from '../providers/AuthProvider';
 import { useUserEvents } from '../hooks/useUserEvents';
 import { EventCard } from '../components/EventCard';
 import { ProfileDetailsSection } from '../components/ProfileDetailsSection';
+import { ProfileAvatar } from '../components/ProfileAvatar';
 import { ProfileScreenProps } from '../navigation/types';
 import { t } from '../i18n';
 import { showcaseEvents } from '../data/mockEvents';
+import { uploadProfilePhoto } from '../services/storageService';
 
 const FEATURED_RSVPS_KEY = '@casa_latina_featured_rsvps';
 
@@ -30,12 +33,33 @@ type TabType = typeof tabs[number];
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
-  const { userDoc } = useAuth();
+  const { user, userDoc, updateUser } = useAuth();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabType>('upcoming');
   const [featuredRsvps, setFeaturedRsvps] = useState<string[]>([]);
   const { upcomingEvents, pastEvents, loading } = useUserEvents();
   const styles = createStyles(theme, insets.top, insets.bottom);
+
+  // Handle profile photo upload
+  const handleImageSelected = useCallback(async (uri: string) => {
+    if (!user?.uid) {
+      Alert.alert('Error', 'You must be logged in to change your profile photo');
+      return;
+    }
+
+    try {
+      // Upload to Firebase Storage
+      const downloadUrl = await uploadProfilePhoto(user.uid, uri);
+      
+      // Update user document with new photo URL
+      await updateUser({ photoUrl: downloadUrl });
+      
+      Alert.alert('Success', 'Profile photo updated successfully');
+    } catch (error) {
+      console.error('Error updating profile photo:', error);
+      throw error; // Re-throw to let ProfileAvatar handle the error UI
+    }
+  }, [user?.uid, updateUser]);
 
   // Load featured RSVPs from storage
   useEffect(() => {
@@ -93,11 +117,15 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {userDoc?.fullName?.charAt(0).toUpperCase() || 'U'}
-            </Text>
-          </View>
+          <ProfileAvatar
+            imageUrl={userDoc?.photoUrl}
+            name={userDoc?.fullName || 'Guest'}
+            size={100}
+            editable
+            onImageSelected={handleImageSelected}
+            theme={theme}
+            enableEnlarge
+          />
         </View>
         
         <Text style={styles.name}>{userDoc?.fullName || 'Guest'}</Text>
@@ -188,21 +216,6 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
     },
     avatarContainer: {
       marginBottom: theme.spacing.md,
-    },
-    avatar: {
-      width: 84,
-      height: 84,
-      borderRadius: theme.borderRadius.round,
-      backgroundColor: theme.colors.softCream + '15',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1, // Thin 1px gold ring
-      borderColor: theme.colors.warmGold, // #CBB890
-    },
-    avatarText: {
-      ...theme.typography.heroTitle,
-      color: theme.colors.softCream,
-      fontSize: 38,
     },
     name: {
       ...theme.typography.sectionTitle,
