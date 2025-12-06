@@ -28,6 +28,7 @@ export default {
           "Casa Latina needs camera access to take profile pictures.",
         NSPhotoLibraryAddUsageDescription:
           "Casa Latina needs permission to save photos to your library.",
+        ITSAppUsesNonExemptEncryption: false,
       },
     },
     android: {
@@ -49,24 +50,6 @@ export default {
       favicon: "./assets/favicon.png",
     },
     scheme: "casalatina",
-    plugins: [
-      [
-        "expo-font",
-        {
-          fonts: [
-            "node_modules/@expo-google-fonts/cormorant-garamond/CormorantGaramond_300Light.ttf",
-            "node_modules/@expo-google-fonts/cormorant-garamond/CormorantGaramond_400Regular.ttf",
-            "node_modules/@expo-google-fonts/cormorant-garamond/CormorantGaramond_600SemiBold.ttf",
-            "node_modules/@expo-google-fonts/cormorant-garamond/CormorantGaramond_700Bold.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_300Light.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_400Regular.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_500Medium.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_600SemiBold.ttf",
-            "node_modules/@expo-google-fonts/inter/Inter_700Bold.ttf",
-          ],
-        },
-      ],
-    ],
     extra: {
       eas: {
         projectId: "45050d16-7ca5-4645-8876-e8f57321d85c",
