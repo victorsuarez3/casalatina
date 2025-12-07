@@ -29,20 +29,10 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Top Row: CASA LATINA (left) + Miami (right) */}
-      <View style={styles.topRow}>
-        <Text style={styles.brandLabel}>
-          {t('home_location_label')}
-        </Text>
-        <TouchableOpacity
-          style={styles.cityPillTop}
-          onPress={onCityPress}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="location" size={13} color={theme.colors.primary} />
-          <Text style={styles.cityPillText}>{city}</Text>
-        </TouchableOpacity>
-      </View>
+      {/* CASA LATINA · MIAMI - Premium typography */}
+      <Text style={styles.brandLabel}>
+        {t('home_location_label')}
+      </Text>
 
       {/* Good evening, {firstName} - Primary hero heading */}
       <Text style={styles.primaryGreeting}>
@@ -54,10 +44,12 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
         {t('home_subtitle')}
       </Text>
 
-      {/* Founding member badge */}
+      {/* Founding member badge - Enhanced premium design */}
       <View style={styles.badgeContainer}>
         <View style={styles.memberBadge}>
+          <Ionicons name="diamond" size={12} color={theme.colors.primary} style={styles.badgeIcon} />
           <Text style={styles.memberBadgeText}>{t('member_founder')}</Text>
+          <View style={styles.badgeGlow} />
         </View>
       </View>
     </View>
@@ -71,14 +63,7 @@ const createStyles = (theme: any, topInset: number) => StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     backgroundColor: theme.colors.background,
   },
-  // Top row with CASA LATINA (left) and Miami (right)
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.lg,
-  },
-  // CASA LATINA - Premium typography with small caps effect
+  // CASA LATINA · MIAMI - Premium typography with small caps effect
   brandLabel: {
     ...theme.typography.labelSmall,
     color: theme.colors.textSecondary,
@@ -86,6 +71,7 @@ const createStyles = (theme: any, topInset: number) => StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 2.5, // Premium letter spacing
     textTransform: 'uppercase',
+    marginBottom: theme.spacing.md,
     opacity: 0.85, // Slightly reduced opacity for luxury feel
   },
   // Primary hero heading - "Good evening, Victor"
@@ -107,81 +93,42 @@ const createStyles = (theme: any, topInset: number) => StyleSheet.create({
     marginBottom: 18, // 16-20px spacing to city selector
     opacity: 0.85, // Slightly reduced opacity for luxury feel
   },
-  // City pill for top row
-  cityPillTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.md + 4,
-    paddingVertical: theme.spacing.sm + 2,
-    borderRadius: theme.borderRadius.round,
-    gap: theme.spacing.xs + 2,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  cityPillText: {
-    ...theme.typography.label,
-    color: theme.colors.text,
-    fontSize: 13,
-  },
-  // Legacy city pill style (keeping for compatibility)
-  cityPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.md + 4,
-    paddingVertical: theme.spacing.sm + 2,
-    borderRadius: theme.borderRadius.round,
-    gap: theme.spacing.xs + 2,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    marginBottom: 12, // 12px spacing to badge
-  },
-  // Founding member badge
+  // Founding member badge - Premium enhanced design
   badgeContainer: {
     alignItems: 'flex-start',
   },
   memberBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: theme.colors.primary + '15', // More subtle
+    backgroundColor: theme.colors.primary + '12', // Ultra subtle background
     borderWidth: 1,
-    borderColor: theme.colors.primary + '30',
-    paddingHorizontal: theme.spacing.md + 4,
-    paddingVertical: theme.spacing.xs + 2,
+    borderColor: theme.colors.primary + '25',
+    paddingHorizontal: theme.spacing.md + 6,
+    paddingVertical: theme.spacing.sm,
     borderRadius: theme.borderRadius.round,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    position: 'relative',
+    overflow: 'hidden',
+    ...theme.shadows.glow, // Premium glow effect
+  },
+  badgeIcon: {
+    marginTop: 1, // Slight vertical adjustment for perfect alignment
+  },
+  badgeGlow: {
+    position: 'absolute',
+    top: -10,
+    left: -10,
+    right: -10,
+    bottom: -10,
+    backgroundColor: theme.colors.primary + '05', // Subtle radial glow
+    borderRadius: theme.borderRadius.xl,
   },
   memberBadgeText: {
     ...theme.typography.labelSmall,
     color: theme.colors.primary,
     fontSize: 11,
-    letterSpacing: 0.5,
-  },
-  // Legacy styles (keeping for compatibility)
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing.lg,
-  },
-  greetingContainer: {
-    flex: 1,
-  },
-  greeting: {
-    ...theme.typography.heroTitle,
-    color: '#FFFFFF',
-    fontSize: 38,
-    lineHeight: 46,
-    letterSpacing: -0.5,
-    marginBottom: theme.spacing.xs + 4,
-  },
-  subtitle: {
-    ...theme.typography.bodySmall,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xs + 2,
-  },
-  notificationButton: {
-    padding: theme.spacing.xs + 2,
-    marginTop: theme.spacing.xs,
+    letterSpacing: 0.8,
+    fontWeight: '600',
   },
 });

@@ -18,7 +18,7 @@ const getInitialLang = (): Lang => {
 const translations: Record<Lang, Record<string, string>> = {
   en: {
     // Home Header
-    home_location_label: 'CASA LATINA',
+    home_location_label: 'CASA LATINA · MIAMI',
     home_greeting: 'Good evening, {{name}}',
     home_subtitle: 'Home of Latin Culture & Creators',
     member_founder: 'Founding member',
@@ -73,7 +73,7 @@ const translations: Record<Lang, Record<string, string>> = {
   },
   es: {
     // Home Header
-    home_location_label: 'CASA LATINA',
+    home_location_label: 'CASA LATINA · MIAMI',
     home_greeting: 'Buenas noches, {{name}}',
     home_subtitle: 'Hogar de la Cultura y Creadores Latinos',
     member_founder: 'Miembro fundador',
