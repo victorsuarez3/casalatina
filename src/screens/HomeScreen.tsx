@@ -344,7 +344,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         ListHeaderComponent={
           <>
             <HomeHeader
-              userName={userDoc?.fullName || 'Guest'}
+              userName={userDoc?.fullName?.split(' ')[0] || 'Guest'}
               city={city}
               onNotificationPress={() => {}}
               onCityPress={() => {}}
@@ -434,7 +434,7 @@ const createStyles = (theme: any, bottomInset: number) =>
     },
     sectionHeader: {
       paddingHorizontal: theme.spacing.md,
-      marginTop: theme.spacing.xxl + 4, // More top spacing before header
+      marginTop: theme.spacing.md, // Closer to filters, less top spacing
       marginBottom: theme.spacing.lg + 4, // Increased spacing between header and card
     },
     sectionTitle: {

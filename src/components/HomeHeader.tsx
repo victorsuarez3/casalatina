@@ -29,10 +29,20 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* CASA LATINA - Premium typography */}
-      <Text style={styles.brandLabel}>
-        {t('home_location_label')}
-      </Text>
+      {/* Top Row: CASA LATINA (left) + Miami (right) */}
+      <View style={styles.topRow}>
+        <Text style={styles.brandLabel}>
+          {t('home_location_label')}
+        </Text>
+        <TouchableOpacity
+          style={styles.cityPillTop}
+          onPress={onCityPress}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="location" size={13} color={theme.colors.primary} />
+          <Text style={styles.cityPillText}>{city}</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Good evening, {firstName} - Primary hero heading */}
       <Text style={styles.primaryGreeting}>
@@ -43,16 +53,6 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
       <Text style={styles.cultureSubtitle}>
         {t('home_subtitle')}
       </Text>
-
-      {/* City Pill - Location selector */}
-      <TouchableOpacity
-        style={styles.cityPill}
-        onPress={onCityPress}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="location" size={13} color={theme.colors.primary} />
-        <Text style={styles.cityPillText}>{city}</Text>
-      </TouchableOpacity>
 
       {/* Founding member badge */}
       <View style={styles.badgeContainer}>
@@ -71,6 +71,13 @@ const createStyles = (theme: any, topInset: number) => StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     backgroundColor: theme.colors.background,
   },
+  // Top row with CASA LATINA (left) and Miami (right)
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
   // CASA LATINA - Premium typography with small caps effect
   brandLabel: {
     ...theme.typography.labelSmall,
@@ -79,7 +86,6 @@ const createStyles = (theme: any, topInset: number) => StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 2.5, // Premium letter spacing
     textTransform: 'uppercase',
-    marginBottom: theme.spacing.md,
     opacity: 0.85, // Slightly reduced opacity for luxury feel
   },
   // Primary hero heading - "Good evening, Victor"
@@ -101,7 +107,24 @@ const createStyles = (theme: any, topInset: number) => StyleSheet.create({
     marginBottom: 18, // 16-20px spacing to city selector
     opacity: 0.85, // Slightly reduced opacity for luxury feel
   },
-  // City selector pill
+  // City pill for top row
+  cityPillTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.spacing.md + 4,
+    paddingVertical: theme.spacing.sm + 2,
+    borderRadius: theme.borderRadius.round,
+    gap: theme.spacing.xs + 2,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  cityPillText: {
+    ...theme.typography.label,
+    color: theme.colors.text,
+    fontSize: 13,
+  },
+  // Legacy city pill style (keeping for compatibility)
   cityPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -114,11 +137,6 @@ const createStyles = (theme: any, topInset: number) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
     marginBottom: 12, // 12px spacing to badge
-  },
-  cityPillText: {
-    ...theme.typography.label,
-    color: theme.colors.text,
-    fontSize: 13,
   },
   // Founding member badge
   badgeContainer: {
