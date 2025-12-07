@@ -13,6 +13,7 @@ export default {
       "An exclusive members-only community connecting Latinos through curated events and experiences in Miami.",
     primaryColor: "#D5C4A1",
     splash: {
+      image: false,
       resizeMode: "contain",
       backgroundColor: "#000000",
     },
