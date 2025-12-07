@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "Casa Latina",
     slug: "casa-latina",
-    version: "1.0.3",
+    version: "1.0.4",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -13,7 +13,7 @@ export default {
       "An exclusive members-only community connecting Latinos through curated events and experiences in Miami.",
     primaryColor: "#D5C4A1",
     splash: {
-      image: false,
+      image: "./assets/splashscreen_logo.png",
       resizeMode: "contain",
       backgroundColor: "#000000",
     },
