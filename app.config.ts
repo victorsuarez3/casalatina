@@ -18,11 +18,6 @@ export default {
       backgroundColor: "#000000",
     },
     ios: {
-      splash: {
-        image: "./assets/splashscreen_logo.png",
-        resizeMode: "contain",
-        backgroundColor: "#000000",
-      },
       supportsTablet: true,
       bundleIdentifier: "com.casalatina.app",
       buildNumber: "4",
@@ -34,7 +29,6 @@ export default {
         NSPhotoLibraryAddUsageDescription:
           "Casa Latina needs permission to save photos to your library.",
         ITSAppUsesNonExemptEncryption: false,
-        "UILaunchStoryboardName": "SplashScreen",
         "UIViewControllerBasedStatusBarAppearance": false,
         "UIStatusBarStyle": "UIStatusBarStyleLightContent",
       },
