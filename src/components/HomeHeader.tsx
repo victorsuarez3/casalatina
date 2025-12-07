@@ -71,7 +71,7 @@ const createStyles = (theme: any, topInset: number) => StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 2.5, // Premium letter spacing
     textTransform: 'uppercase',
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm, // Reduced from md to sm for tighter cohesion
     opacity: 0.85, // Slightly reduced opacity for luxury feel
   },
   // Primary hero heading - "Good evening, Victor"
