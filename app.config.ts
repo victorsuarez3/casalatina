@@ -25,7 +25,7 @@ export default {
       },
       supportsTablet: true,
       bundleIdentifier: "com.casalatina.app",
-      buildNumber: "2",
+      buildNumber: "3",
       infoPlist: {
         NSPhotoLibraryUsageDescription:
           "Casa Latina needs access to your photo library to upload profile pictures and share event photos.",
@@ -45,7 +45,7 @@ export default {
         backgroundColor: "#000000",
       },
       package: "com.casalatina.app",
-      versionCode: 2,
+      versionCode: 3,
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       permissions: [
