@@ -38,7 +38,8 @@ interface Particle {
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContinueButton = false, onContinue }) => {
   const { theme } = useTheme();
 
-  // Animations - Start with black background for seamless transition from native splash
+  // Animations - Start with white background for cinematic transition to black
+  const backgroundFade = useRef(new Animated.Value(0)).current; // 0 = white, 1 = black
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.85)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
@@ -70,9 +71,16 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
   ).current;
 
   useEffect(() => {
-    // Sequence of animations - Start immediately with black background
+    // Sequence of animations - Start with cinematic white-to-black transition
     Animated.sequence([
-      // 1. Logo fade-in + scale (0-500ms) - Starts immediately
+      // 0. Background fade from white to black (0-300ms) - Seamless transition
+      Animated.timing(backgroundFade, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false, // Can't use native driver for background color
+      }),
+
+      // 1. Logo fade-in + scale (300-800ms)
       Animated.parallel([
         Animated.timing(logoOpacity, {
           toValue: 1,
@@ -207,14 +215,22 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
 
   const styles = createStyles(theme);
 
+  // Interpolate background color from white to black
+  const backgroundColor = backgroundFade.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#FFFFFF', '#000000'],
+  });
+
   return (
-    <View style={styles.container}>
-      {/* Background gradient - always visible with black background */}
-      <LinearGradient
-        colors={['#000000', 'rgba(15, 15, 15, 0.98)', '#000000']}
-        locations={[0, 0.5, 1]}
-        style={StyleSheet.absoluteFillObject}
-      />
+    <Animated.View style={[styles.container, { backgroundColor }]}>
+      {/* Background gradient - fades in with background */}
+      <Animated.View style={{ ...StyleSheet.absoluteFillObject, opacity: backgroundFade }}>
+        <LinearGradient
+          colors={['#000000', 'rgba(15, 15, 15, 0.98)', '#000000']}
+          locations={[0, 0.5, 1]}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </Animated.View>
 
       {/* Radial vignette effect */}
       <View style={styles.vignette} />
@@ -278,6 +294,33 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
           </Animated.View>
         </Animated.View>
 
+        {/* Main Text with Shimmer */}
+        <Animated.View style={[styles.textContainer, { opacity: textOpacity }]}>
+          <Text style={styles.mainText}>Your Exclusive</Text>
+          <Text style={styles.mainText}>Latin Social Club</Text>
+
+          {/* Shimmer effect overlay */}
+          <Animated.View
+            style={[
+              styles.shimmer,
+              { left: shimmerPosition }
+            ]}
+          >
+            <LinearGradient
+              colors={['transparent', 'rgba(243, 232, 209, 0.8)', 'transparent']}
+              locations={[0, 0.5, 1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.shimmerGradient}
+            />
+          </Animated.View>
+        </Animated.View>
+
+        {/* Tagline */}
+        <Animated.View style={{ opacity: taglineOpacity }}>
+          <Text style={styles.tagline}>Home of Latin Culture & Creators</Text>
+        </Animated.View>
+
         {/* Continue Button - appears after animation if showContinueButton is true */}
         {showContinueButton && (
           <Animated.View
@@ -305,7 +348,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
           </Animated.View>
         )}
       </View>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -313,7 +356,7 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#000000',
+      backgroundColor: '#FFFFFF', // Start with white for cinematic transition
     },
     vignette: {
       ...StyleSheet.absoluteFillObject,
