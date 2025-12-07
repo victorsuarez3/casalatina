@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "Casa Latina",
     slug: "casa-latina",
-    version: "1.0.2",
+    version: "1.0.3",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
