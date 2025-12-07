@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "Casa Latina",
     slug: "casa-latina",
-    version: "1.0.4",
+    version: "1.0.5",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -25,7 +25,7 @@ export default {
       },
       supportsTablet: true,
       bundleIdentifier: "com.casalatina.app",
-      buildNumber: "3",
+      buildNumber: "4",
       infoPlist: {
         NSPhotoLibraryUsageDescription:
           "Casa Latina needs access to your photo library to upload profile pictures and share event photos.",
@@ -45,7 +45,7 @@ export default {
         backgroundColor: "#000000",
       },
       package: "com.casalatina.app",
-      versionCode: 3,
+      versionCode: 4,
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       permissions: [
