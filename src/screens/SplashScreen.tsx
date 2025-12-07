@@ -38,12 +38,11 @@ interface Particle {
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContinueButton = false, onContinue }) => {
   const { theme } = useTheme();
 
-  // Animations - Start with white background for cinematic transition to black
-  const backgroundFade = useRef(new Animated.Value(0)).current; // 0 = white, 1 = black
+  // Animations - Start with black background for seamless transition from native splash
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.85)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
-  const shimmerPosition = useRef(new Animated.Value(0)).current;
+  const shimmerPosition = useRef(new Animated.Value(-width)).current;
   const taglineOpacity = useRef(new Animated.Value(0)).current;
   const sparkleOpacity = useRef(new Animated.Value(0)).current;
   const sparkleScale = useRef(new Animated.Value(0.1)).current; // Empieza pequeño como punto
@@ -71,16 +70,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
   ).current;
 
   useEffect(() => {
-    // Sequence of animations - Start with cinematic white-to-black transition
+    // Sequence of animations - Start immediately with black background
     Animated.sequence([
-      // 0. Background fade from white to black (0-300ms) - Seamless transition
-      Animated.timing(backgroundFade, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: false, // Can't use native driver for background color
-      }),
-
-      // 1. Logo fade-in + scale (300-800ms)
+      // 1. Logo fade-in + scale (0-500ms) - Starts immediately
       Animated.parallel([
         Animated.timing(logoOpacity, {
           toValue: 1,
@@ -105,9 +97,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
 
       // 3. Shimmer effect (800-1500ms)
       Animated.timing(shimmerPosition, {
-        toValue: width,
+        toValue: width * 2,
         duration: 700,
-        useNativeDriver: false, // Can't use native driver for left property
+        useNativeDriver: false, // Fixed: Can't use native driver for left property
       }),
     ]).start();
 
@@ -215,22 +207,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
 
   const styles = createStyles(theme);
 
-  // Interpolate background color from white to black
-  const backgroundColor = backgroundFade.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#FFFFFF', '#000000'],
-  });
-
   return (
-    <Animated.View style={[styles.container, { backgroundColor }]}>
-      {/* Background gradient - fades in with background */}
-      <Animated.View style={{ ...StyleSheet.absoluteFillObject, opacity: backgroundFade }}>
-        <LinearGradient
-          colors={['#000000', 'rgba(15, 15, 15, 0.98)', '#000000']}
-          locations={[0, 0.5, 1]}
-          style={StyleSheet.absoluteFillObject}
-        />
-      </Animated.View>
+    <View style={styles.container}>
+      {/* Background gradient - always visible with black background */}
+      <LinearGradient
+        colors={['#000000', 'rgba(15, 15, 15, 0.98)', '#000000']}
+        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFillObject}
+      />
 
       {/* Radial vignette effect */}
       <View style={styles.vignette} />
@@ -255,7 +239,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
 
       {/* Main content */}
       <View style={styles.content}>
-        {/* Casa Latina Branding - Premium Typography */}
+        {/* Casa Latina Logo - Centered and Large */}
         <Animated.View
           style={[
             styles.logoContainer,
@@ -265,9 +249,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
             },
           ]}
         >
-          <Text style={styles.brandText}>CASA LATINA</Text>
+          <Image
+            source={require('../../assets/splash-icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
 
-          {/* Sparkle - Decorative element */}
+          {/* Sparkle - Top Right of Shield, overlapped on top */}
           <Animated.View
             style={[
               styles.sparkleContainer,
@@ -285,40 +273,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
               },
             ]}
           >
-            <Svg width="32" height="32" viewBox="0 0 140 140">
+            <Svg width="50" height="50" viewBox="0 0 140 140">
               <Path
                 d="M70 0 C63 20 55 28 35 35 C55 42 63 50 70 70 C77 50 85 42 105 35 C85 28 77 20 70 0 Z"
                 fill="#F3E8D1"
               />
             </Svg>
           </Animated.View>
-        </Animated.View>
-
-        {/* Main Text with Shimmer */}
-        <Animated.View style={[styles.textContainer, { opacity: textOpacity }]}>
-          <Text style={styles.mainText}>Your Exclusive</Text>
-          <Text style={styles.mainText}>Latin Social Club</Text>
-
-          {/* Shimmer effect overlay */}
-          <Animated.View
-            style={[
-              styles.shimmer,
-              { transform: [{ translateX: shimmerPosition }] }
-            ]}
-          >
-            <LinearGradient
-              colors={['transparent', 'rgba(243, 232, 209, 0.8)', 'transparent']}
-              locations={[0, 0.5, 1]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.shimmerGradient}
-            />
-          </Animated.View>
-        </Animated.View>
-
-        {/* Tagline */}
-        <Animated.View style={{ opacity: taglineOpacity }}>
-          <Text style={styles.tagline}>Home of Latin Culture & Creators</Text>
         </Animated.View>
 
         {/* Continue Button - appears after animation if showContinueButton is true */}
@@ -348,7 +309,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
           </Animated.View>
         )}
       </View>
-    </Animated.View>
+    </View>
   );
 };
 
@@ -356,7 +317,7 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#FFFFFF', // Start with white for cinematic transition
+      backgroundColor: '#000000',
     },
     vignette: {
       ...StyleSheet.absoluteFillObject,
@@ -386,27 +347,20 @@ const createStyles = (theme: any) =>
     logoContainer: {
       position: 'relative',
     },
-    brandText: {
-      fontSize: 42,
-      fontFamily: 'Inter_600SemiBold',
-      color: '#F3E8D1',
-      textAlign: 'center',
-      letterSpacing: 3,
-      textTransform: 'uppercase',
-      textShadowColor: 'rgba(0, 0, 0, 0.8)',
-      textShadowOffset: { width: 0, height: 4 },
-      textShadowRadius: 12,
-      shadowColor: 'rgba(243, 232, 209, 0.4)',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.6,
-      shadowRadius: 16,
+    logo: {
+      width: 260,
+      height: 260,
+      shadowColor: 'rgba(243, 232, 209, 0.6)',
+      shadowOffset: { width: 0, height: 16 },
+      shadowOpacity: 0.8,
+      shadowRadius: 32,
     },
     sparkleContainer: {
       position: 'absolute',
-      top: -10,
-      right: -20,
-      width: 32,
-      height: 32,
+      top: 5, // Más cerca del borde superior del escudo
+      right: 40, // Más cerca del borde derecho del escudo
+      width: 50,
+      height: 50,
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 10, // Ensure it's on top
@@ -427,7 +381,7 @@ const createStyles = (theme: any) =>
     shimmer: {
       position: 'absolute',
       top: 0,
-      left: 0,
+      left: -width,
       width: width,
       height: '100%',
     },
