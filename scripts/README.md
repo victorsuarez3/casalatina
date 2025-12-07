@@ -10,39 +10,50 @@ Automatically increments build numbers in `app.config.ts` for both iOS and Andro
 - **Safety**: Only increments existing values, doesn't modify version strings
 - **Smart**: Detects EAS Build vs local environment
 
-## 🎯 Usage Methods
+## 🎯 Usage Methods (Scripts NPM - RECOMENDADO)
 
-### Method 1: EAS Build (Recommended)
+### Método Principal: Scripts de Build Integrados
 ```bash
-# Automatic bump + build in one command
-eas build --platform ios
-eas build --platform android
-eas build --platform all
-```
-✅ **EAS Build automatically runs bump-build via postCheckout hook**
-
-### Method 2: Local Build Scripts
-```bash
-# iOS only
+# iOS completo: bump + build + push
 npm run build:ios
 
-# Android only
+# Android completo: bump + build + push
 npm run build:android
 
-# Both platforms
+# Ambos: bump + build + push
 npm run build:all
 ```
-✅ **Scripts run bump-build locally before EAS build**
+✅ **Flujo completo automatizado**
 
-### Method 3: Manual Bump
+### Método Manual: Bump + Commit + Build
 ```bash
+# Paso 1: Incrementar números
 npm run bump-build
+
+# Paso 2: Commit cambios
+git add app.config.ts
+git commit -m "build: bump to v1.0.4 (iOS: 3, Android: 3)"
+
+# Paso 3: Build normal
+eas build --platform ios
+eas build --platform android
 ```
-✅ **Only increments numbers, then commit manually**
 
 ## 📊 Example Outputs
 
-### Local Environment:
+### Scripts Integrados (Recomendado):
+```
+🚀 Auto-incrementing build numbers locally...
+📱 iOS buildNumber: 2 → 3
+🤖 Android versionCode: 2 → 3
+✅ Build numbers updated successfully!
+📝 Don't forget to commit these changes before pushing to production
+
+> eas build --platform ios
+[Build process starts...]
+```
+
+### Bump Manual:
 ```
 🚀 Auto-incrementing build numbers locally...
 📱 iOS buildNumber: 2 → 3
@@ -52,31 +63,32 @@ npm run bump-build
 💡 Use: npm run build:ios, npm run build:android, or npm run build:all
 ```
 
-### EAS Build Environment:
-```
-🏗️  EAS Build detected - Auto-incrementing build numbers...
-📱 iOS buildNumber: 2 → 3
-🤖 Android versionCode: 2 → 3
-✅ Build numbers updated successfully!
-🏗️  Build numbers incremented in EAS Build environment
-📦 Proceeding with automated build...
-```
-
 ## ⚠️ Important Notes
 
-### For Local Builds:
-- **Always commit** the build number changes before pushing
-- Build numbers increment independently for each platform
-- Safe to run multiple times (continues incrementing)
+### Workflows Recomendados:
 
-### For EAS Builds:
-- **Automatic**: No manual intervention needed
-- **postCheckout hook** runs bump-build in EAS servers
-- **Changes are included** in the build automatically
-- **Recommended workflow** for production builds
+#### Para Desarrollo Rápido:
+```bash
+npm run build:ios  # Bump + Build + Push automático
+```
+
+#### Para Producción Controlada:
+```bash
+npm run bump-build    # Solo incrementa
+# Revisar cambios en app.config.ts
+git add app.config.ts
+git commit -m "build: release v1.0.4"
+eas build --platform ios --profile production
+```
 
 ### Safety Features:
-- Only modifies existing numeric values
-- Preserves all other app.config.ts content
-- Works with any current build numbers
-- Reversible with `git checkout`
+- ✅ Only modifies existing numeric values
+- ✅ Preserves all other app.config.ts content
+- ✅ Works with any current build numbers
+- ✅ Independent increment for iOS/Android
+- ✅ Reversible with `git checkout`
+
+### Troubleshooting:
+- Si `npm run build:*` falla: Usa método manual
+- Si necesitas reset: `git checkout -- app.config.ts`
+- Build numbers siempre se incrementan (+1 cada vez)
