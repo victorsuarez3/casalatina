@@ -15,6 +15,7 @@ import {
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -90,7 +91,7 @@ export const ApplicationFormScreen: React.FC<ApplicationFormScreenProps> = ({
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, insets.top, insets.bottom);
-  
+
   const [formData, setFormData] = useState<ApplicationFormData>({
     position: '',
     company: '',
@@ -269,6 +270,7 @@ export const ApplicationFormScreen: React.FC<ApplicationFormScreenProps> = ({
       </View>
     );
   };
+
 
   return (
     <KeyboardAvoidingView

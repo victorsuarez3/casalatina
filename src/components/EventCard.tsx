@@ -141,9 +141,9 @@ export const EventCard: React.FC<EventCardProps> = ({
             resizeMode="cover"
           />
           
-          {/* Premium vertical vignette gradient */}
+          {/* Premium vertical vignette gradient - Enhanced for text legibility */}
           <LinearGradient
-            colors={['rgba(0, 0, 0, 0.25)', 'rgba(0, 0, 0, 0.55)']}
+            colors={['rgba(0, 0, 0, 0.35)', 'rgba(0, 0, 0, 0.65)']}
             locations={[0, 1]}
             style={styles.vignetteOverlay}
           />
@@ -166,7 +166,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           <View style={styles.detailRow}>
             <Ionicons name="location" size={13} color={theme.colors.textSecondary} />
             <Text style={styles.detailText}>
-              {city} · {neighborhood}
+              {neighborhood}
             </Text>
           </View>
 
@@ -240,7 +240,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 const createStyles = (theme: any) => StyleSheet.create({
   container: {
     backgroundColor: theme.colors.surface,
-    borderRadius: 24, // Apple-level premium corners
+    borderRadius: theme.borderRadius.xl, // Refined corners consistent with global design
     marginHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.cardGap, // 20px gap
     overflow: 'hidden',

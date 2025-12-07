@@ -100,20 +100,20 @@ const createStyles = (theme: any) => StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.20)',
   },
   chipSelected: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary + 'E6', // Lighter gold (230/255 opacity)
     borderWidth: 1,
-    borderColor: 'rgba(243, 232, 209, 0.20)',
-    shadowColor: 'rgba(243, 232, 209, 0.4)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
-    elevation: 8,
+    borderColor: 'rgba(243, 232, 209, 0.15)', // Softer border
+    shadowColor: 'rgba(243, 232, 209, 0.25)', // Ultra-soft shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   chipText: {
     ...theme.typography.label,
     color: theme.colors.textSecondary,
     fontSize: 14,
-    opacity: 0.75,
+    opacity: 0.65, // Lower contrast for unselected
   },
   chipTextSelected: {
     ...theme.typography.label,

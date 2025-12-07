@@ -35,7 +35,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <TextInput
           style={styles.input}
           placeholder={placeholder}
-          placeholderTextColor="rgba(255, 255, 255, 0.35)"
+          placeholderTextColor="rgba(255, 255, 255, 0.25)" // Slightly lighter for luxury aesthetic
           value={value}
           onChangeText={onChangeText}
         />
@@ -70,11 +70,11 @@ const createStyles = (theme: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.md,
-    paddingHorizontal: theme.spacing.md + 2,
-    paddingVertical: theme.spacing.sm + 4, // More padding
+    borderRadius: theme.borderRadius.md + 2, // Add 1-2px more border radius
+    paddingHorizontal: theme.spacing.lg + 2, // Increased horizontal padding
+    paddingVertical: theme.spacing.sm + 4,
     borderWidth: 1,
-    borderColor: 'rgba(243, 232, 209, 0.15)',
+    borderColor: 'rgba(243, 232, 209, 0.08)', // Softer border (reduced opacity)
     shadowColor: 'rgba(243, 232, 209, 0.05)',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,

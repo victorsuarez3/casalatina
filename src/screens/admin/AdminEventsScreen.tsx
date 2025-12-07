@@ -14,12 +14,13 @@ import {
 } from 'react-native';
 import { AdminGuard } from '../../components/AdminGuard';
 import { useTheme } from '../../hooks/useTheme';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getAllEventsAdmin, deleteEvent } from '../../services/admin';
 import { EventDoc } from '../../models/firestore';
 import { Timestamp } from 'firebase/firestore';
 import { showAlert } from '../../utils/alert';
+import { Ionicons } from '@expo/vector-icons';
 
 export const AdminEventsScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -29,9 +30,12 @@ export const AdminEventsScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const styles = createStyles(theme, insets.top);
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
+  // Reload events when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadEvents();
+    }, [])
+  );
 
   const loadEvents = async () => {
     setLoading(true);
@@ -74,18 +78,18 @@ export const AdminEventsScreen: React.FC = () => {
       </View>
       <View style={styles.eventActions}>
         <TouchableOpacity
-          style={styles.editButton}
+          style={styles.iconButton}
           onPress={() => {
             (navigation as any).navigate('AdminEventEdit', { eventId: item.id });
           }}
         >
-          <Text style={styles.editButtonText}>Edit</Text>
+          <Ionicons name="pencil" size={20} color={theme.colors.primary} />
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.deleteButton}
+          style={styles.iconButton}
           onPress={() => handleDelete(item.id)}
         >
-          <Text style={styles.deleteButtonText}>Delete</Text>
+          <Ionicons name="trash-outline" size={20} color={theme.colors.errorRed || '#CC5C6C'} />
         </TouchableOpacity>
       </View>
     </View>
@@ -193,27 +197,18 @@ const createStyles = (theme: any, topInset: number) =>
     },
     eventActions: {
       flexDirection: 'row',
-      gap: theme.spacing.sm,
+      gap: theme.spacing.xs,
+      alignItems: 'center',
     },
-    editButton: {
-      backgroundColor: theme.colors.primary,
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.sm,
-      borderRadius: theme.borderRadius.sm,
-    },
-    editButtonText: {
-      ...theme.typography.labelSmall,
-      color: theme.colors.pureBlack,
-    },
-    deleteButton: {
-      backgroundColor: theme.colors.errorRed || '#CC5C6C',
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.sm,
-      borderRadius: theme.borderRadius.sm,
-    },
-    deleteButtonText: {
-      ...theme.typography.labelSmall,
-      color: '#FFFFFF',
+    iconButton: {
+      width: 40,
+      height: 40,
+      borderRadius: theme.borderRadius.round,
+      backgroundColor: theme.colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: theme.colors.border,
     },
     emptyContainer: {
       padding: theme.spacing.xl,

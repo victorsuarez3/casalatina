@@ -35,7 +35,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, insets.top, insets.bottom);
-  
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -85,6 +85,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       }
     }
   };
+
 
   return (
     <KeyboardAvoidingView

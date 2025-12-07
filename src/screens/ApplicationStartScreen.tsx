@@ -4,18 +4,19 @@
  */
 
 import React, { useState } from 'react';
+import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { ApplicationFormScreen, ApplicationFormData } from './Auth/ApplicationFormScreen';
 import { useAuth } from '../providers/AuthProvider';
 import { validateMembershipApplication } from '../utils/validation';
 import { showAlert } from '../utils/alert';
-import { useRoute } from '@react-navigation/native';
 import { getUserByInviteCode } from '../services/firebase/users';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 export const ApplicationStartScreen: React.FC = () => {
   const { updateUser, userDoc } = useAuth();
   const [loading, setLoading] = useState(false);
-  const route = useRoute();
-  const inviteCode = (route.params as any)?.inviteCode;
+  // inviteCode is not available when rendered directly from App.tsx
+  const inviteCode = undefined;
 
   // Reset loading if membershipStatus changes (user was redirected)
   React.useEffect(() => {
@@ -113,9 +114,43 @@ export const ApplicationStartScreen: React.FC = () => {
   };
 
   return (
-    <ApplicationFormScreen
-      onSubmit={handleSubmit}
-      loading={loading}
-    />
+    <ErrorBoundary
+      fallback={(error, resetError) => (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>Unable to load application form</Text>
+          <Text style={styles.errorMessage}>
+            {error.message || 'An unexpected error occurred'}
+          </Text>
+        </View>
+      )}
+    >
+      <ApplicationFormScreen
+        onSubmit={handleSubmit}
+        loading={loading}
+      />
+    </ErrorBoundary>
   );
 };
+
+const styles = StyleSheet.create({
+  errorContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#F5F1E8',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+});

@@ -434,8 +434,8 @@ const createStyles = (theme: any, bottomInset: number) =>
     },
     sectionHeader: {
       paddingHorizontal: theme.spacing.md,
-      marginTop: theme.spacing.section,
-      marginBottom: theme.spacing.titleMargin,
+      marginTop: theme.spacing.xxl + 4, // More top spacing before header
+      marginBottom: theme.spacing.lg + 4, // Increased spacing between header and card
     },
     sectionTitle: {
       ...theme.typography.sectionTitle,

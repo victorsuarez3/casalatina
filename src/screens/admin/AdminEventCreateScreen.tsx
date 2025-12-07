@@ -26,6 +26,7 @@ import { createEvent, CreateEventData } from "../../services/admin";
 import { showAlert } from "../../utils/alert";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { uploadEventPhoto } from "../../services/storageService";
+import { Timestamp } from "firebase/firestore";
 
 // Event types for Casa Latina
 const EVENT_TYPES = [
@@ -252,10 +253,18 @@ export const AdminEventCreateScreen: React.FC = () => {
               <Ionicons
                 name="calendar-outline"
                 size={20}
-                color={theme.colors.textSecondary}
+                color={theme.colors.primary}
               />
               <Text style={styles.dateText}>
-                {formData.date.toLocaleString()}
+                {new Date(formData.date instanceof Timestamp ? formData.date.toDate() : formData.date).toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                })} · {new Date(formData.date instanceof Timestamp ? formData.date.toDate() : formData.date).toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit'
+                })}
               </Text>
             </TouchableOpacity>
             {showDatePicker && (
@@ -269,6 +278,7 @@ export const AdminEventCreateScreen: React.FC = () => {
                 }
                 mode="datetime"
                 display="default"
+                themeVariant="dark"
                 onChange={(event, selectedDate) => {
                   setShowDatePicker(false);
                   if (selectedDate) {
@@ -551,9 +561,10 @@ const createStyles = (theme: any, topInset: number, bottomInset: number) =>
     },
     dateText: {
       ...theme.typography.body,
-      color: theme.colors.text,
+      color: theme.colors.primary,
       fontSize: 15,
       flex: 1,
+      fontWeight: '500',
     },
     submitButton: {
       backgroundColor: theme.colors.primary,

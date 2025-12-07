@@ -40,7 +40,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, insets.top, insets.bottom);
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -74,6 +74,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       }
     }
   };
+
 
   return (
     <KeyboardAvoidingView

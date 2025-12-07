@@ -38,8 +38,7 @@ interface Particle {
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContinueButton = false, onContinue }) => {
   const { theme } = useTheme();
 
-  // Animations
-  const backgroundFade = useRef(new Animated.Value(0)).current; // 0 = white, 1 = black
+  // Animations - Start with black background for seamless transition from native splash
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.85)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
@@ -71,16 +70,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
   ).current;
 
   useEffect(() => {
-    // Sequence of animations
+    // Sequence of animations - Start immediately with black background
     Animated.sequence([
-      // 0. Background fade from white to black (0-300ms) - Seamless transition
-      Animated.timing(backgroundFade, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: false, // Can't use native driver for background color
-      }),
-
-      // 1. Logo fade-in + scale (300-800ms)
+      // 1. Logo fade-in + scale (0-500ms) - Starts immediately
       Animated.parallel([
         Animated.timing(logoOpacity, {
           toValue: 1,
@@ -215,22 +207,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
 
   const styles = createStyles(theme);
 
-  // Interpolate background color from white to black
-  const backgroundColor = backgroundFade.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#FFFFFF', '#000000'],
-  });
-
   return (
-    <Animated.View style={[styles.container, { backgroundColor }]}>
-      {/* Background gradient - fades in with background */}
-      <Animated.View style={{ ...StyleSheet.absoluteFillObject, opacity: backgroundFade }}>
-        <LinearGradient
-          colors={['#000000', 'rgba(15, 15, 15, 0.98)', '#000000']}
-          locations={[0, 0.5, 1]}
-          style={StyleSheet.absoluteFillObject}
-        />
-      </Animated.View>
+    <View style={styles.container}>
+      {/* Background gradient - always visible with black background */}
+      <LinearGradient
+        colors={['#000000', 'rgba(15, 15, 15, 0.98)', '#000000']}
+        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFillObject}
+      />
 
       {/* Radial vignette effect */}
       <View style={styles.vignette} />
@@ -325,7 +309,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
           </Animated.View>
         )}
       </View>
-    </Animated.View>
+    </View>
   );
 };
 

@@ -20,11 +20,11 @@ import { ApplicationReviewScreen } from './src/screens/ApplicationReviewScreen';
 import { MembershipRejectedScreen } from './src/screens/MembershipRejectedScreen';
 import { InviteLandingScreen } from './src/screens/InviteLandingScreen';
 import { AlertManager } from './src/utils/alert';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 
 function AppContent() {
   const { user, userDoc, loading } = useAuth();
   const [showSplash, setShowSplash] = React.useState(true);
-  const [showAuth, setShowAuth] = React.useState(false);
   const [inviteUrl, setInviteUrl] = React.useState<string | null>(null);
 
   // Configure basic URL handling for invitations
@@ -61,23 +61,21 @@ function AppContent() {
         showContinueButton={!loading && !user}
         onContinue={() => {
           setShowSplash(false);
-          setShowAuth(true);
         }}
       />
     );
   }
 
   // Unauthenticated: show auth navigator (login/signup)
-  if (!user || showAuth) {
+  // IMPORTANT: Only show AuthNavigator if user is NOT authenticated
+  if (!user) {
     return (
       <AuthNavigator
         onAuthSuccess={() => {
-          setShowAuth(false);
-          // After successful auth, App.tsx will re-render and route based on membershipStatus
+          // User is now authenticated, component will re-render automatically
         }}
         onRegisterSuccess={() => {
-          setShowAuth(false);
-          // After registration, user will be authenticated and App.tsx will route to ApplicationStartScreen
+          // User is now authenticated, component will re-render automatically
         }}
       />
     );
@@ -98,20 +96,27 @@ function AppContent() {
   }
 
   // Route based on membership status
+  console.log('[App] Routing user with status:', userDoc.membershipStatus);
+
   switch (userDoc.membershipStatus) {
     case 'not_applied':
+      console.log('[App] Navigating to ApplicationStartScreen');
       return <ApplicationStartScreen />;
 
     case 'pending':
+      console.log('[App] Navigating to ApplicationReviewScreen');
       return <ApplicationReviewScreen />;
 
     case 'approved':
+      console.log('[App] Navigating to AppNavigator (main app)');
       return <AppNavigator />;
 
     case 'rejected':
+      console.log('[App] Navigating to MembershipRejectedScreen');
       return <MembershipRejectedScreen />;
 
     default:
+      console.log('[App] Navigating to AppNavigator (default)');
       return <AppNavigator />;
   }
 }
@@ -143,19 +148,21 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <AuthProvider>
-            <NavigationContainer>
-              <AppContent />
-              <StatusBar style="light" />
-            </NavigationContainer>
-            <AlertManager />
-          </AuthProvider>
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <NavigationContainer>
+                <AppContent />
+                <StatusBar style="light" />
+              </NavigationContainer>
+              <AlertManager />
+            </AuthProvider>
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
 

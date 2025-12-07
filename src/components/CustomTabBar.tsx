@@ -280,6 +280,7 @@ const createStyles = (theme: any, bottomInset: number) =>
     },
     homeButtonGlow: {
       ...theme.shadows.glow, // Soft radial glow
+      shadowRadius: 16, // Increased shadow blur for expensive feel
     },
     homeButtonLabel: {
       ...theme.typography.label,
@@ -300,10 +301,10 @@ const createStyles = (theme: any, bottomInset: number) =>
       backgroundColor: 'transparent',
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: theme.spacing.xs / 2,
+      marginBottom: theme.spacing.xs / 2 + 1, // Increase icon + label spacing by 1-2px
     },
     circularButtonFocused: {
-      backgroundColor: theme.colors.primary + '20',
+      backgroundColor: theme.colors.primary + '18', // Slightly lighter gold tone
       borderRadius: theme.borderRadius.round,
     },
     tabLabel: {
