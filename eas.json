@@ -26,6 +26,14 @@
       },
       "android": {
         "buildType": "apk"
+      },
+      "hooks": {
+        "postCheckout": [
+          {
+            "name": "Auto-increment build numbers",
+            "run": "npm run bump-build"
+          }
+        ]
       }
     }
   },
