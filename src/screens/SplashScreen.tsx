@@ -43,7 +43,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.85)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
-  const shimmerPosition = useRef(new Animated.Value(-width)).current;
+  const shimmerPosition = useRef(new Animated.Value(0)).current;
   const taglineOpacity = useRef(new Animated.Value(0)).current;
   const sparkleOpacity = useRef(new Animated.Value(0)).current;
   const sparkleScale = useRef(new Animated.Value(0.1)).current; // Empieza pequeño como punto
@@ -105,9 +105,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
 
       // 3. Shimmer effect (800-1500ms)
       Animated.timing(shimmerPosition, {
-        toValue: width * 2,
+        toValue: width,
         duration: 700,
-        useNativeDriver: true,
+        useNativeDriver: false, // Can't use native driver for left property
       }),
     ]).start();
 
@@ -303,7 +303,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
           <Animated.View
             style={[
               styles.shimmer,
-              { left: shimmerPosition }
+              { transform: [{ translateX: shimmerPosition }] }
             ]}
           >
             <LinearGradient
@@ -427,7 +427,7 @@ const createStyles = (theme: any) =>
     shimmer: {
       position: 'absolute',
       top: 0,
-      left: -width,
+      left: 0,
       width: width,
       height: '100%',
     },
