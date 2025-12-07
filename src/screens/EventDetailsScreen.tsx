@@ -28,7 +28,6 @@ import { EventDoc } from '../models/firestore';
 import { t } from '../i18n';
 import { Timestamp } from 'firebase/firestore';
 
-const tabs = ['Overview', 'Details', 'Venue'];
 
 const CATEGORY_LABELS: Record<string, string> = {
   COCTEL_INTIMO: 'CÓCTEL ÍNTIMO',
@@ -42,7 +41,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigation }) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState(0);
   const { user } = useAuth();
   const styles = createStyles(theme, insets.bottom);
 
@@ -281,26 +279,6 @@ export const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, n
             </View>
           </View>
 
-          {/* Tabs - Premium */}
-          <View style={styles.tabs}>
-            {tabs.map((tab, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[styles.tab, activeTab === index && styles.tabActive]}
-                onPress={() => setActiveTab(index)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.tabText,
-                    activeTab === index && styles.tabTextActive,
-                  ]}
-                >
-                  {tab}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
 
           {/* Description */}
           <View style={styles.description}>
@@ -501,33 +479,8 @@ const createStyles = (theme: any, bottomInset: number) => StyleSheet.create({
     ...theme.typography.caption,
     color: theme.colors.textTertiary,
   },
-  tabs: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm + 2,
-    marginBottom: theme.spacing.lg + 4,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-    paddingBottom: theme.spacing.md,
-  },
-  tab: {
-    paddingVertical: theme.spacing.sm + 2,
-    paddingHorizontal: theme.spacing.md + 2,
-    borderRadius: theme.borderRadius.sm,
-  },
-  tabActive: {
-    backgroundColor: theme.colors.surface,
-  },
-  tabText: {
-    ...theme.typography.label,
-    color: theme.colors.textSecondary,
-    fontSize: 14,
-  },
-  tabTextActive: {
-    ...theme.typography.label,
-    color: theme.colors.softCream,
-    fontWeight: '500',
-  },
   description: {
+    marginTop: theme.spacing.md,
     marginBottom: theme.spacing.xl + 4,
   },
   descriptionText: {
