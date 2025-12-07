@@ -239,7 +239,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
 
       {/* Main content */}
       <View style={styles.content}>
-        {/* Casa Latina Logo - Centered and Large */}
+        {/* Casa Latina Branding - Premium Typography */}
         <Animated.View
           style={[
             styles.logoContainer,
@@ -249,13 +249,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
             },
           ]}
         >
-          <Image
-            source={require('../../assets/splash-icon.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <Text style={styles.brandText}>CASA LATINA</Text>
 
-          {/* Sparkle - Top Right of Shield, overlapped on top */}
+          {/* Sparkle - Decorative element */}
           <Animated.View
             style={[
               styles.sparkleContainer,
@@ -273,7 +269,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, showContin
               },
             ]}
           >
-            <Svg width="50" height="50" viewBox="0 0 140 140">
+            <Svg width="32" height="32" viewBox="0 0 140 140">
               <Path
                 d="M70 0 C63 20 55 28 35 35 C55 42 63 50 70 70 C77 50 85 42 105 35 C85 28 77 20 70 0 Z"
                 fill="#F3E8D1"
@@ -347,20 +343,27 @@ const createStyles = (theme: any) =>
     logoContainer: {
       position: 'relative',
     },
-    logo: {
-      width: 260,
-      height: 260,
-      shadowColor: 'rgba(243, 232, 209, 0.6)',
-      shadowOffset: { width: 0, height: 16 },
-      shadowOpacity: 0.8,
-      shadowRadius: 32,
+    brandText: {
+      fontSize: 42,
+      fontFamily: 'Inter_600SemiBold',
+      color: '#F3E8D1',
+      textAlign: 'center',
+      letterSpacing: 3,
+      textTransform: 'uppercase',
+      textShadowColor: 'rgba(0, 0, 0, 0.8)',
+      textShadowOffset: { width: 0, height: 4 },
+      textShadowRadius: 12,
+      shadowColor: 'rgba(243, 232, 209, 0.4)',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.6,
+      shadowRadius: 16,
     },
     sparkleContainer: {
       position: 'absolute',
-      top: 5, // Más cerca del borde superior del escudo
-      right: 40, // Más cerca del borde derecho del escudo
-      width: 50,
-      height: 50,
+      top: -10,
+      right: -20,
+      width: 32,
+      height: 32,
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 10, // Ensure it's on top
